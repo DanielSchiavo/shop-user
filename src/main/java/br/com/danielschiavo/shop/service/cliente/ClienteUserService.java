@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.repository.cliente.ClienteRepository;
+import br.com.danielschiavo.shop.model.MensagemErroDTO;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.dto.AlterarClienteDTO;
@@ -18,7 +19,6 @@ import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.service.cliente.mapper.ClienteMapper;
-import br.com.danielschiavo.shop.service.filestorage.FileStoragePerfilService;
 import lombok.Setter;
 
 @Service
@@ -29,33 +29,35 @@ public class ClienteUserService {
 	private ClienteRepository clienteRepository;
 	
 	@Autowired
-	private FileStoragePerfilService fileService;
-	
-	@Autowired
 	private ClienteMapper clienteMapper;
 	
 	@Autowired
 	private UsuarioAutenticadoService usuarioAutenticadoService;
+	
+	@Autowired
+	private FileStorageServiceClient fileStorageServiceClient;
 
 	@Transactional
 	public void deletarFotoPerfilPorIdToken() throws IOException {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		if (cliente.getFotoPerfil().equals("Padrao.jpeg")) {
-			throw new ValidacaoException("O cliente não tem foto de perfil, ele já está com a foto padrão, portanto, não é possível deletar");
+		MensagemErroDTO mensagemErroDTO = fileStorageServiceClient.deletarFotoPerfil(cliente.getFotoPerfil());
+		if (mensagemErroDTO.erro() != null) {
+			throw new ValidacaoException(mensagemErroDTO.mensagem());
 		}
-		fileService.deletarFotoPerfilNoDisco(cliente.getFotoPerfil());
 		cliente.setFotoPerfil("Padrao.jpeg");
 		clienteRepository.save(cliente);
 	}
 	
 	public MostrarClientePaginaInicialDTO detalharClientePorIdTokenPaginaInicial() {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		return clienteMapper.clienteParaMostrarClientePaginaInicialDTO(cliente, fileService);
+		ArquivoInfoDTO arquivoInfoDTO = fileStorageServiceClient.getFotoPerfil(cliente.getFotoPerfil());
+		return clienteMapper.clienteParaMostrarClientePaginaInicialDTO(cliente, arquivoInfoDTO);
 	}
 	
 	public MostrarClienteDTO detalharClientePorIdToken() {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		return clienteMapper.clienteParaMostrarClienteDTO(cliente, fileService);
+		ArquivoInfoDTO arquivoInfoDTO = fileStorageServiceClient.getFotoPerfil(cliente.getFotoPerfil());
+		return clienteMapper.clienteParaMostrarClienteDTO(cliente, arquivoInfoDTO);
 	}
 	
 	@Transactional
@@ -77,15 +79,17 @@ public class ClienteUserService {
 	}
 	
 	@Transactional
-	public ArquivoInfoDTO alterarFotoPerfilPorIdToken(AlterarFotoPerfilDTO alterarFotoPerfilDTO) {
+	public String alterarFotoPerfilPorIdToken(AlterarFotoPerfilDTO alterarFotoPerfilDTO) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
 		String nomeNovaFotoPerfil = alterarFotoPerfilDTO.nomeNovaFotoPerfil();
-		fileService.verificarSeExisteFotoPerfilPorNome(nomeNovaFotoPerfil);
-		ArquivoInfoDTO arquivoInfoDTO = fileService.pegarFotoPerfilPorNome(nomeNovaFotoPerfil);
-		
-		cliente.setFotoPerfil(nomeNovaFotoPerfil);
-		clienteRepository.save(cliente);
-		return arquivoInfoDTO;
+		ArquivoInfoDTO arquivoInfoDTO2 = fileStorageServiceClient.getFotoPerfil(nomeNovaFotoPerfil);
+		if (arquivoInfoDTO2.erro() != null) {
+			throw new ValidacaoException("A foto de perfil " + nomeNovaFotoPerfil + " não foi cadastrada.");
+		} else {
+			cliente.setFotoPerfil(nomeNovaFotoPerfil);
+			clienteRepository.save(cliente);
+			return "Foto de perfil alterada com sucesso!";
+		}
 	}
 	
 	
