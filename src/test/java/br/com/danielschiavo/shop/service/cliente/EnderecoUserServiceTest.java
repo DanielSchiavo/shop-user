@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.cliente.EnderecoMapperImpl;
 import br.com.danielschiavo.repository.cliente.EnderecoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
@@ -32,6 +31,7 @@ import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO.Cad
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco;
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco.EnderecoBuilder;
 import br.com.danielschiavo.shop.model.cliente.endereco.MostrarEnderecoDTO;
+import br.com.danielschiavo.shop.service.cliente.mapper.EnderecoMapperImpl;
 
 @ExtendWith(MockitoExtension.class)
 class EnderecoUserServiceTest {

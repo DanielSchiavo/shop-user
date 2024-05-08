@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.cliente.EnderecoMapper;
 import br.com.danielschiavo.repository.cliente.EnderecoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
@@ -15,6 +14,7 @@ import br.com.danielschiavo.shop.model.cliente.endereco.AlterarEnderecoDTO;
 import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO;
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco;
 import br.com.danielschiavo.shop.model.cliente.endereco.MostrarEnderecoDTO;
+import br.com.danielschiavo.shop.service.cliente.mapper.EnderecoMapper;
 import lombok.Setter;
 
 @Service

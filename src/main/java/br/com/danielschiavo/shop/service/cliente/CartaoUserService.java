@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.cliente.CartaoMapper;
 import br.com.danielschiavo.repository.cliente.CartaoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.cartao.CadastrarCartaoDTO;
 import br.com.danielschiavo.shop.model.cliente.cartao.Cartao;
 import br.com.danielschiavo.shop.model.cliente.cartao.MostrarCartaoDTO;
+import br.com.danielschiavo.shop.service.cliente.mapper.CartaoMapper;
 import br.com.danielschiavo.shop.service.cliente.validacoes.ValidadorCadastrarNovoCartao;
 import lombok.Setter;
 

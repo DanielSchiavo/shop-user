@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.cliente.CarrinhoMapper;
 import br.com.danielschiavo.repository.cliente.CarrinhoRepository;
 import br.com.danielschiavo.service.cliente.CarrinhoUtilidadeService;
 import br.com.danielschiavo.shop.model.ValidacaoException;
@@ -19,6 +18,7 @@ import br.com.danielschiavo.shop.model.cliente.carrinho.Carrinho;
 import br.com.danielschiavo.shop.model.cliente.carrinho.MostrarCarrinhoClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.AdicionarItemCarrinhoDTO;
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.ItemCarrinho;
+import br.com.danielschiavo.shop.service.cliente.mapper.CarrinhoMapper;
 import lombok.Setter;
 
 @Service

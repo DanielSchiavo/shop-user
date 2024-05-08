@@ -20,7 +20,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.cliente.CarrinhoMapper;
 import br.com.danielschiavo.repository.cliente.CarrinhoRepository;
 import br.com.danielschiavo.service.cliente.CarrinhoUtilidadeService;
 import br.com.danielschiavo.shop.model.ValidacaoException;
@@ -32,6 +31,7 @@ import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.AdicionarIt
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.AdicionarItemCarrinhoDTO.AdicionarItemCarrinhoDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.ItemCarrinho;
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.ItemCarrinho.ItemCarrinhoBuilder;
+import br.com.danielschiavo.shop.service.cliente.mapper.CarrinhoMapper;
 
 @ExtendWith(MockitoExtension.class)
 class CarrinhoUserServiceTest {
