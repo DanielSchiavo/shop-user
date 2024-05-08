@@ -27,21 +27,23 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import br.com.danielschiavo.shop.JwtUtilTest;
+import br.com.danielschiavo.JwtUtilTest;
 import br.com.danielschiavo.shop.model.cliente.dto.AlterarClienteDTO;
+import br.com.danielschiavo.shop.model.cliente.dto.AlterarClienteDTO.AlterarClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.dto.AlterarFotoPerfilDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO;
-import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO;
-import br.com.danielschiavo.shop.model.cliente.dto.AlterarClienteDTO.AlterarClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO.CadastrarClienteDTOBuilder;
+import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO.MostrarClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO;
-import br.com.danielschiavo.shop.model.cliente.endereco.MostrarEnderecoDTO;
 import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO.CadastrarEnderecoDTOBuilder;
+import br.com.danielschiavo.shop.model.cliente.endereco.MostrarEnderecoDTO;
 import br.com.danielschiavo.shop.model.cliente.endereco.MostrarEnderecoDTO.MostrarEnderecoDTOBuilder;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO.ArquivoInfoDTOBuilder;
 import br.com.danielschiavo.shop.service.cliente.ClienteUserService;
+import br.com.danielschiavo.shop.service.cliente.MostrarClientePaginaInicialDTO;
+import br.com.danielschiavo.shop.service.cliente.MostrarClientePaginaInicialDTO.MostrarClientePaginaInicialDTOBuilder;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -58,6 +60,9 @@ class ClienteUserControllerTest {
 	private JacksonTester<CadastrarClienteDTO> cadastrarClienteDTOJson;
 	
 	@Autowired
+	private JacksonTester<MostrarClientePaginaInicialDTO> mostrarClientePaginaInicialDTOJson;
+	
+	@Autowired
 	private JacksonTester<MostrarClienteDTO> mostrarClienteDTOJson;
 	
 	@Autowired
@@ -66,21 +71,14 @@ class ClienteUserControllerTest {
 	@Autowired
 	private JacksonTester<AlterarFotoPerfilDTO> alterarFotoPerfilDTOJson;
 	
-	@Autowired
-	private JacksonTester<ArquivoInfoDTO> arquivoInfoDTOJson;
-	
     @MockBean
     private ClienteUserService clienteUserService;
 
+	private MostrarClientePaginaInicialDTOBuilder mostrarClientePaginaInicialDTOBuilder = MostrarClientePaginaInicialDTO.builder();
+	
 	private MostrarClienteDTOBuilder mostrarClienteDTOBuilder = MostrarClienteDTO.builder();
 
-	private MostrarEnderecoDTOBuilder mostrarEnderecoDTOBuilder = MostrarEnderecoDTO.builder();
-	
 	private CadastrarClienteDTOBuilder cadastrarClienteDTOBuilder = CadastrarClienteDTO.builder();
-	
-	private CadastrarEnderecoDTOBuilder cadastrarEnderecoDTOBuilder = CadastrarEnderecoDTO.builder();
-	
-	private ArquivoInfoDTOBuilder arquivoInfoDtoBuilder = ArquivoInfoDTO.builder();
 	
 	private AlterarClienteDTOBuilder alterarClienteDTOBuilder = AlterarClienteDTO.builder();
 	
@@ -117,8 +115,11 @@ class ClienteUserControllerTest {
 	@DisplayName("Detalhar cliente página inicial deve retornar codigo http 201 quando token válido é enviado")
 	void detalharClientePaginaInicial_ClienteValido_DeveRetornarOk() throws IOException, Exception {
 		//ARRANGE
-		MostrarClienteDTO mostrarClienteDTO = mostrarClienteDTOBuilder.nome("Daniel").fotoPerfil(new ArquivoInfoDTO("Padrao.jpeg", "Bytes da imagem padrao".getBytes())).build();
-		when(clienteUserService.detalharClientePorIdTokenPaginaInicial()).thenReturn(mostrarClienteDTO);
+		MostrarClientePaginaInicialDTO mostrarClientePaginaInicialDTO = mostrarClientePaginaInicialDTOBuilder
+																			.nome("Daniel")
+																			.fotoPerfil(new ArquivoInfoDTO("Padrao.jpeg", "Bytes da imagem padrao".getBytes()))
+																			.build();
+		when(clienteUserService.detalharClientePorIdTokenPaginaInicial()).thenReturn(mostrarClientePaginaInicialDTO);
 		
 		//ACT
 		var response = mvc.perform(get("/shop/cliente/pagina-inicial")
@@ -127,7 +128,7 @@ class ClienteUserControllerTest {
 		
 		//ASSERT
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        var jsonEsperado = mostrarClienteDTOJson.write(mostrarClienteDTO).getJson();
+        var jsonEsperado = mostrarClientePaginaInicialDTOJson.write(mostrarClientePaginaInicialDTO).getJson();
         assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
 	}
 	
@@ -146,8 +147,7 @@ class ClienteUserControllerTest {
 	@DisplayName("Detalhar cliente deve retornar http 200 quando token enviado é válido")
 	void detalharCliente_ClienteValido_DeveRetornarOk() throws IOException, Exception {
 		//ARRANGE
-		MostrarEnderecoDTO mostrarEnderecoDTO = mostrarEnderecoDTOBuilder.id(1L).cep("29142298").rua("divinopolis").numero("35").complemento(null).bairro("Bela vista").cidade("Cariacica").estado("ES").enderecoPadrao(true).build();
-		MostrarClienteDTO mostrarClienteDTO = mostrarClienteDTOBuilder.nome("Daniel").fotoPerfil(new ArquivoInfoDTO("Padrao.jpeg", "Bytes da imagem padrao".getBytes())).enderecos(new ArrayList<>(List.of(mostrarEnderecoDTO))).build();
+		MostrarClienteDTO mostrarClienteDTO = mostrarClienteDTOBuilder.nome("Daniel").fotoPerfil(new ArquivoInfoDTO("Padrao.jpeg", "Bytes da imagem padrao".getBytes())).build();
 		when(clienteUserService.detalharClientePorIdToken()).thenReturn(mostrarClienteDTO);
 
 		//ACT
@@ -163,7 +163,7 @@ class ClienteUserControllerTest {
 	
 	@Test
 	@DisplayName("Detalhar cliente deve retornar http 403 quando token não é enviado")
-	void detalharCliente_ClienteInvalido_DeveRetornarForbidden() throws IOException, Exception {
+	void detalharCliente_TokenNaoEnviado_DeveRetornarForbidden() throws IOException, Exception {
 		//ACT
 		var response = mvc.perform(get("/shop/cliente"))
 								  .andReturn().getResponse();
@@ -177,7 +177,8 @@ class ClienteUserControllerTest {
 	void cadastrarCliente_ClienteValidoSemEndereco_DeveRetornarCreated() throws IOException, Exception {
 		//ARRANGE
 		MostrarClienteDTO mostrarClienteDTO = mostrarClienteDTOBuilder.cpf("12345671012").nome("Junior").sobrenome("da Silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("juniordasilva@gmail.com").celular("27996101055").fotoPerfil(new ArquivoInfoDTO("Padrao.jpeg", "Bytes da imagem padrao".getBytes())).enderecos(null).build();
-		when(clienteUserService.cadastrarCliente(any())).thenReturn(mostrarClienteDTO);
+		String mensagem = "Cadastrado com sucesso!";
+		when(clienteUserService.cadastrarCliente(any())).thenReturn(mensagem);
 		
 		//ACT
 		CadastrarClienteDTO cadastrarClienteDTO = cadastrarClienteDTOBuilder.cpf("12345671012").nome("Junior").sobrenome("da Silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("juniordasilva@gmail.com").senha("123456").celular("27996101055").fotoPerfil("Padrao.jpeg").endereco(null).build();
@@ -188,31 +189,7 @@ class ClienteUserControllerTest {
 		
 		//ASSERT
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
-        var jsonEsperado = mostrarClienteDTOJson.write(mostrarClienteDTO).getJson();
-        assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
-	}
-	
-	@Test
-	@DisplayName("Cadastrar cliente deve retornar http 201 quando informacoes estão válidas com endereço")
-	void cadastrarCliente_ClienteValidoComEndereco_DeveRetornarCreated() throws IOException, Exception {
-		//ARRANGE
-		MostrarEnderecoDTO mostrarEnderecoDTO = mostrarEnderecoDTOBuilder.id(1L).cep("29142298").rua("divinopolis").numero("35").complemento(null).bairro("Bela vista").cidade("Cariacica").estado("ES").enderecoPadrao(true).build();
-		MostrarClienteDTO mostrarClienteDTO = mostrarClienteDTOBuilder.cpf("12345671012").nome("Junior").sobrenome("da Silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("juniordasilva@gmail.com").celular("27996101055").fotoPerfil(new ArquivoInfoDTO("Padrao.jpeg", "Bytes da imagem padrao".getBytes())).enderecos(new ArrayList<>(List.of(mostrarEnderecoDTO))).build();
-		when(clienteUserService.cadastrarCliente(any())).thenReturn(mostrarClienteDTO);
-		
-		//ACT
-		
-		CadastrarEnderecoDTO cadastrarEnderecoDTO = cadastrarEnderecoDTOBuilder.cep("29142298").rua("divinopolis").numero("35").complemento(null).bairro("Bela vista").cidade("Cariacica").estado("ES").enderecoPadrao(true).build();
-		CadastrarClienteDTO cadastrarClienteDTO = cadastrarClienteDTOBuilder.cpf("12345671012").nome("Junior").sobrenome("da Silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("juniordasilva@gmail.com").senha("123456").celular("27996101055").fotoPerfil("Padrao.jpeg").endereco(cadastrarEnderecoDTO).build();
-		var response = mvc.perform(post("/shop/publico/cadastrar/cliente")
-								  .contentType(MediaType.APPLICATION_JSON)
-								  .content(cadastrarClienteDTOJson.write(cadastrarClienteDTO).getJson()))
-						.andReturn().getResponse();
-		
-		//ASSERT
-		assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
-        var jsonEsperado = mostrarClienteDTOJson.write(mostrarClienteDTO).getJson();
-        assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
+        assertThat(response.getContentAsString()).isEqualTo(mensagem);
 	}
 
     @Test
@@ -230,8 +207,8 @@ class ClienteUserControllerTest {
 	@DisplayName("Alterar cliente deve retornar http 200 quando informacoes estão válidas")
 	void alterarClientePorId_ClienteValido_DeveRetornarOk() throws IOException, Exception {
 		//ARRANGE
-		MostrarClienteDTO mostrarClienteDTO = mostrarClienteDTOBuilder.cpf("12345671012").nome("Junior").sobrenome("da Silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("juniordasilva@gmail.com").celular("27996101055").fotoPerfil(new ArquivoInfoDTO("Padrao.jpeg", "Bytes da imagem padrao".getBytes())).build();
-		when(clienteUserService.alterarClientePorIdToken(any())).thenReturn(mostrarClienteDTO);
+		String mensagem = "Alterado com sucesso!";
+		when(clienteUserService.alterarClientePorIdToken(any())).thenReturn(mensagem);
 		
 		//ACT
 		AlterarClienteDTO alterarClienteDTO = alterarClienteDTOBuilder.cpf("12345671012").nome("Junior").sobrenome("da Silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("juniordasilva@gmail.com").senha("123456").celular("27996101055").build();
@@ -243,8 +220,7 @@ class ClienteUserControllerTest {
 		
 		//ASSERT
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        var jsonEsperado = mostrarClienteDTOJson.write(mostrarClienteDTO).getJson();
-        assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
+        assertThat(response.getContentAsString()).isEqualTo(mensagem);
 	}
 	
 	@Test
@@ -263,8 +239,8 @@ class ClienteUserControllerTest {
 	@DisplayName("Alterar foto perfil por id token deve retornar codigo http 200 quando token e corpo da requisição válido é enviado")
 	void alterarFotoPerfilPorIdToken_ClienteValido_DeveRetornarOk() throws IOException, Exception {
 		//ARRANGE
-		ArquivoInfoDTO arquivoInfoDTO = arquivoInfoDtoBuilder.nomeArquivo("nomeNovaImagem.jpeg").bytesArquivo("Bytes da novaImagem.jpeg".getBytes()).build();
-		when(clienteUserService.alterarFotoPerfilPorIdToken(any())).thenReturn(arquivoInfoDTO);
+		String mensagem = "Foto alterada com sucesso!";
+		when(clienteUserService.alterarFotoPerfilPorIdToken(any())).thenReturn(mensagem);
 
 		//ACT
 		var response = mvc.perform(put("/shop/cliente/foto-perfil")
@@ -277,8 +253,7 @@ class ClienteUserControllerTest {
 		
 		//ASSERT
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        var jsonEsperado = arquivoInfoDTOJson.write(arquivoInfoDTO).getJson();
-        assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
+        assertThat(response.getContentAsString()).isEqualTo(mensagem);
 	}
 	
 	@Test
