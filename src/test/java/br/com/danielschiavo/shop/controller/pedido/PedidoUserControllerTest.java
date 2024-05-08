@@ -30,27 +30,27 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import br.com.danielschiavo.shop.JwtUtilTest;
+import br.com.danielschiavo.JwtUtilTest;
 import br.com.danielschiavo.shop.model.pedido.StatusPedido;
 import br.com.danielschiavo.shop.model.pedido.TipoEntrega;
 import br.com.danielschiavo.shop.model.pedido.dto.CriarPagamentoDTO;
-import br.com.danielschiavo.shop.model.pedido.dto.CriarPedidoDTO;
-import br.com.danielschiavo.shop.model.pedido.dto.MostrarPedidoDTO;
-import br.com.danielschiavo.shop.model.pedido.dto.MostrarProdutoDoPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.dto.CriarPagamentoDTO.CriarPagamentoDTOBuilder;
+import br.com.danielschiavo.shop.model.pedido.dto.CriarPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.dto.CriarPedidoDTO.CriarPedidoDTOBuilder;
+import br.com.danielschiavo.shop.model.pedido.dto.MostrarPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.dto.MostrarPedidoDTO.MostrarPedidoDTOBuilder;
+import br.com.danielschiavo.shop.model.pedido.dto.MostrarProdutoDoPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.dto.MostrarProdutoDoPedidoDTO.MostrarProdutoDoPedidoDTOBuilder;
 import br.com.danielschiavo.shop.model.pedido.entrega.CriarEntregaDTO;
-import br.com.danielschiavo.shop.model.pedido.entrega.MostrarEntregaDTO;
 import br.com.danielschiavo.shop.model.pedido.entrega.CriarEntregaDTO.CriarEntregaDTOBuilder;
+import br.com.danielschiavo.shop.model.pedido.entrega.MostrarEntregaDTO;
 import br.com.danielschiavo.shop.model.pedido.entrega.MostrarEntregaDTO.MostrarEntregaDTOBuilder;
 import br.com.danielschiavo.shop.model.pedido.itempedido.AdicionarItemPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.itempedido.AdicionarItemPedidoDTO.AdicionarItemPedidoDTOBuilder;
 import br.com.danielschiavo.shop.model.pedido.pagamento.MetodoPagamento;
 import br.com.danielschiavo.shop.model.pedido.pagamento.MostrarPagamentoDTO;
-import br.com.danielschiavo.shop.model.pedido.pagamento.StatusPagamento;
 import br.com.danielschiavo.shop.model.pedido.pagamento.MostrarPagamentoDTO.MostrarPagamentoDTOBuilder;
+import br.com.danielschiavo.shop.model.pedido.pagamento.StatusPagamento;
 import br.com.danielschiavo.shop.service.pedido.PedidoUserService;
 
 @SpringBootTest
@@ -93,10 +93,30 @@ class PedidoUserControllerTest {
 		MostrarEntregaDTO mostrarEntregaDTO = mostrarEntregaDTOBuilder.tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build();
 		MostrarPagamentoDTO mostrarPagamentoDTO = mostrarPagamentoDTOBuilder.metodoPagamento(MetodoPagamento.BOLETO).statusPagamento(StatusPagamento.PENDENTE).build();
 		byte[] bytesImagem = "Hello world".getBytes();
-		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO = mostrarProdutoDoPedidoDTOBuilder.idProduto(1L).nomeProduto("Produto 1").preco(BigDecimal.valueOf(400.00)).quantidade(2).subTotal(BigDecimal.valueOf(800.00)).primeiraImagem(bytesImagem).build();
-		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO2 = mostrarProdutoDoPedidoDTOBuilder.idProduto(2L).nomeProduto("Produto 2").preco(BigDecimal.valueOf(200.00)).quantidade(2).subTotal(BigDecimal.valueOf(400.00)).primeiraImagem(bytesImagem).build();
+		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO = mostrarProdutoDoPedidoDTOBuilder
+																			.idProduto(1L)
+																			.nomeProduto("Produto 1")
+																			.preco(BigDecimal.valueOf(400.00))
+																			.quantidade(2)
+																			.subTotal(BigDecimal.valueOf(800.00))
+																			.primeiraImagem(bytesImagem).build();
+		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO2 = mostrarProdutoDoPedidoDTOBuilder
+																			.idProduto(2L)
+																			.nomeProduto("Produto 2")
+																			.preco(BigDecimal.valueOf(200.00))
+																			.quantidade(2)
+																			.subTotal(BigDecimal.valueOf(400.00))
+																			.primeiraImagem(bytesImagem).build();
 		Long idCliente = 2L;
-		MostrarPedidoDTO mostrarPedidoDTO = mostrarPedidoDTOBuilder.idPedido(UUID.randomUUID()).idCliente(idCliente).valorTotal(BigDecimal.valueOf(1200.00)).dataPedido(LocalDateTime.now()).statusPedido(StatusPedido.A_PAGAR).entrega(mostrarEntregaDTO).pagamento(mostrarPagamentoDTO).produtos(new ArrayList<>(List.of(mostrarProdutoDoPedidoDTO, mostrarProdutoDoPedidoDTO2))).build();
+		MostrarPedidoDTO mostrarPedidoDTO = mostrarPedidoDTOBuilder
+													.idPedido(UUID.randomUUID())
+													.idCliente(idCliente)
+													.valorTotal(BigDecimal.valueOf(1200.00))
+													.dataPedido(LocalDateTime.now())
+													.statusPedido(StatusPedido.A_PAGAR)
+													.entrega(mostrarEntregaDTO)
+													.pagamento(mostrarPagamentoDTO)
+													.produtos(new ArrayList<>(List.of(mostrarProdutoDoPedidoDTO, mostrarProdutoDoPedidoDTO2))).build();
 		Page<MostrarPedidoDTO> pageMostrarPedidoDTO = new PageImpl<>(List.of(mostrarPedidoDTO));
 		when(pedidoUserService.pegarPedidosClientePorIdToken(any())).thenReturn(pageMostrarPedidoDTO);
 		
@@ -127,10 +147,30 @@ class PedidoUserControllerTest {
 		MostrarEntregaDTO mostrarEntregaDTO = mostrarEntregaDTOBuilder.tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build();
 		MostrarPagamentoDTO mostrarPagamentoDTO = mostrarPagamentoDTOBuilder.metodoPagamento(MetodoPagamento.BOLETO).statusPagamento(StatusPagamento.PENDENTE).build();
 		byte[] bytesImagem = "Hello world".getBytes();
-		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO = mostrarProdutoDoPedidoDTOBuilder.idProduto(1L).nomeProduto("Produto 1").preco(BigDecimal.valueOf(400.00)).quantidade(2).subTotal(BigDecimal.valueOf(800.00)).primeiraImagem(bytesImagem).build();
-		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO2 = mostrarProdutoDoPedidoDTOBuilder.idProduto(2L).nomeProduto("Produto 2").preco(BigDecimal.valueOf(200.00)).quantidade(2).subTotal(BigDecimal.valueOf(400.00)).primeiraImagem(bytesImagem).build();
+		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO = mostrarProdutoDoPedidoDTOBuilder
+																		.idProduto(1L)
+																		.nomeProduto("Produto 1")
+																		.preco(BigDecimal.valueOf(400.00))
+																		.quantidade(2)
+																		.subTotal(BigDecimal.valueOf(800.00))
+																		.primeiraImagem(bytesImagem).build();
+		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO2 = mostrarProdutoDoPedidoDTOBuilder
+																		.idProduto(2L)
+																		.nomeProduto("Produto 2")
+																		.preco(BigDecimal.valueOf(200.00))
+																		.quantidade(2)
+																		.subTotal(BigDecimal.valueOf(400.00))
+																		.primeiraImagem(bytesImagem).build();
 		Long idCliente = 2L;
-		MostrarPedidoDTO mostrarPedidoDTO = mostrarPedidoDTOBuilder.idPedido(UUID.randomUUID()).idCliente(idCliente).valorTotal(BigDecimal.valueOf(1200.00)).dataPedido(LocalDateTime.now()).statusPedido(StatusPedido.A_PAGAR).entrega(mostrarEntregaDTO).pagamento(mostrarPagamentoDTO).produtos(new ArrayList<>(List.of(mostrarProdutoDoPedidoDTO, mostrarProdutoDoPedidoDTO2))).build();
+		MostrarPedidoDTO mostrarPedidoDTO = mostrarPedidoDTOBuilder
+													.idPedido(UUID.randomUUID())
+													.idCliente(idCliente)
+													.valorTotal(BigDecimal.valueOf(1200.00))
+													.dataPedido(LocalDateTime.now())
+													.statusPedido(StatusPedido.A_PAGAR)
+													.entrega(mostrarEntregaDTO)
+													.pagamento(mostrarPagamentoDTO)
+													.produtos(new ArrayList<>(List.of(mostrarProdutoDoPedidoDTO, mostrarProdutoDoPedidoDTO2))).build();
 		when(pedidoUserService.criarPedidoPorIdToken(any())).thenReturn(mostrarPedidoDTO);
 		
 		//ACT
@@ -138,7 +178,11 @@ class PedidoUserControllerTest {
 		CriarEntregaDTO criarEntregaDTO = criarEntregaDTOBuilder.tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build();
 		AdicionarItemPedidoDTO adicionarItemPedidoDTO = adicionarItemPedidoDTOBuilder.idProduto(1L).quantidade(2).build();
 		AdicionarItemPedidoDTO adicionarItemPedidoDTO2 = adicionarItemPedidoDTOBuilder.idProduto(2L).quantidade(2).build();
-		CriarPedidoDTO criarPedidoDTO = criarPedidoDTOBuilder.pagamento(criarPagamentoDTO).entrega(criarEntregaDTO).veioPeloCarrinho(true).items(new ArrayList<>(List.of(adicionarItemPedidoDTO, adicionarItemPedidoDTO2))).build();
+		CriarPedidoDTO criarPedidoDTO = criarPedidoDTOBuilder
+												.pagamento(criarPagamentoDTO)
+												.entrega(criarEntregaDTO)
+												.veioPeloCarrinho(true)
+												.items(new ArrayList<>(List.of(adicionarItemPedidoDTO, adicionarItemPedidoDTO2))).build();
 		var response = mvc.perform(post("/shop/cliente/pedido")
 								  .header("Authorization", "Bearer " + tokenUser)
 								  .contentType(MediaType.APPLICATION_JSON)
@@ -158,17 +202,41 @@ class PedidoUserControllerTest {
 		MostrarEntregaDTO mostrarEntregaDTO = mostrarEntregaDTOBuilder.tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build();
 		MostrarPagamentoDTO mostrarPagamentoDTO = mostrarPagamentoDTOBuilder.metodoPagamento(MetodoPagamento.BOLETO).statusPagamento(StatusPagamento.PENDENTE).build();
 		byte[] bytesImagem = "Hello world".getBytes();
-		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO = mostrarProdutoDoPedidoDTOBuilder.idProduto(1L).nomeProduto("Produto 1").preco(BigDecimal.valueOf(400.00)).quantidade(2).subTotal(BigDecimal.valueOf(800.00)).primeiraImagem(bytesImagem).build();
-		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO2 = mostrarProdutoDoPedidoDTOBuilder.idProduto(2L).nomeProduto("Produto 2").preco(BigDecimal.valueOf(200.00)).quantidade(2).subTotal(BigDecimal.valueOf(400.00)).primeiraImagem(bytesImagem).build();
+		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO = mostrarProdutoDoPedidoDTOBuilder
+																			.idProduto(1L)
+																			.nomeProduto("Produto 1")
+																			.preco(BigDecimal.valueOf(400.00))
+																			.quantidade(2)
+																			.subTotal(BigDecimal.valueOf(800.00))
+																			.primeiraImagem(bytesImagem).build();
+		MostrarProdutoDoPedidoDTO mostrarProdutoDoPedidoDTO2 = mostrarProdutoDoPedidoDTOBuilder
+																			.idProduto(2L)
+																			.nomeProduto("Produto 2")
+																			.preco(BigDecimal.valueOf(200.00))
+																			.quantidade(2)
+																			.subTotal(BigDecimal.valueOf(400.00))
+																			.primeiraImagem(bytesImagem).build();
 		Long idCliente = 2L;
-		MostrarPedidoDTO mostrarPedidoDTO = mostrarPedidoDTOBuilder.idPedido(UUID.randomUUID()).idCliente(idCliente).valorTotal(BigDecimal.valueOf(1200.00)).dataPedido(LocalDateTime.now()).statusPedido(StatusPedido.A_PAGAR).entrega(mostrarEntregaDTO).pagamento(mostrarPagamentoDTO).produtos(new ArrayList<>(List.of(mostrarProdutoDoPedidoDTO, mostrarProdutoDoPedidoDTO2))).build();
+		MostrarPedidoDTO mostrarPedidoDTO = mostrarPedidoDTOBuilder
+													.idPedido(UUID.randomUUID())
+													.idCliente(idCliente)
+													.valorTotal(BigDecimal.valueOf(1200.00))
+													.dataPedido(LocalDateTime.now())
+													.statusPedido(StatusPedido.A_PAGAR)
+													.entrega(mostrarEntregaDTO)
+													.pagamento(mostrarPagamentoDTO)
+													.produtos(new ArrayList<>(List.of(mostrarProdutoDoPedidoDTO, mostrarProdutoDoPedidoDTO2))).build();
 		when(pedidoUserService.criarPedidoPorIdToken(any())).thenReturn(mostrarPedidoDTO);
 		
 		//ACT
 		CriarPagamentoDTO criarPagamentoDTO = criarPagamentoDTOBuilder.metodoPagamento(MetodoPagamento.BOLETO).build();
 		CriarEntregaDTO criarEntregaDTO = criarEntregaDTOBuilder.tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build();
 		AdicionarItemPedidoDTO adicionarItemPedidoDTO = adicionarItemPedidoDTOBuilder.idProduto(1L).quantidade(2).build();
-		CriarPedidoDTO criarPedidoDTO = criarPedidoDTOBuilder.pagamento(criarPagamentoDTO).entrega(criarEntregaDTO).veioPeloCarrinho(false).items(new ArrayList<>(List.of(adicionarItemPedidoDTO))).build();
+		CriarPedidoDTO criarPedidoDTO = criarPedidoDTOBuilder
+												.pagamento(criarPagamentoDTO)
+												.entrega(criarEntregaDTO)
+												.veioPeloCarrinho(false)
+												.items(new ArrayList<>(List.of(adicionarItemPedidoDTO))).build();
 		var response = mvc.perform(post("/shop/cliente/pedido")
 								  .header("Authorization", "Bearer " + tokenUser)
 								  .contentType(MediaType.APPLICATION_JSON)

@@ -26,7 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import br.com.danielschiavo.shop.JwtUtilTest;
+import br.com.danielschiavo.JwtUtilTest;
 import br.com.danielschiavo.shop.model.cliente.cartao.CadastrarCartaoDTO;
 import br.com.danielschiavo.shop.model.cliente.cartao.MostrarCartaoDTO;
 import br.com.danielschiavo.shop.model.cliente.cartao.TipoCartao;
