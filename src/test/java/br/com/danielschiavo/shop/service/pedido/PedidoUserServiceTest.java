@@ -26,9 +26,11 @@ import org.springframework.data.domain.Pageable;
 import br.com.danielschiavo.JwtUtilTest;
 import br.com.danielschiavo.feign.CarrinhoServiceClient;
 import br.com.danielschiavo.feign.CartaoServiceClient;
+import br.com.danielschiavo.feign.EnderecoServiceClient;
 import br.com.danielschiavo.feign.pedido.FileStoragePedidoService;
 import br.com.danielschiavo.feign.pedido.RequestPedidoImagemProduto;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
+import br.com.danielschiavo.mapper.PedidoMapperImpl;
 import br.com.danielschiavo.repository.pedido.PedidoRepository;
 import br.com.danielschiavo.repository.produto.ProdutoRepository;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
@@ -60,7 +62,6 @@ import br.com.danielschiavo.shop.model.produto.Produto;
 import br.com.danielschiavo.shop.model.produto.Produto.ProdutoBuilder;
 import br.com.danielschiavo.shop.model.produto.categoria.Categoria;
 import br.com.danielschiavo.shop.model.produto.categoria.Categoria.CategoriaBuilder;
-import br.com.danielschiavo.shop.service.pedido.feign.endereco.EnderecoServiceClient;
 import br.com.danielschiavo.shop.service.pedido.validacoes.ValidadorCriarNovoPedido;
 
 @ExtendWith(MockitoExtension.class)
