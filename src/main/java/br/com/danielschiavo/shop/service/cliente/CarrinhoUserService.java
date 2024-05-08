@@ -40,7 +40,7 @@ public class CarrinhoUserService {
 	@Transactional
 	public void deletarProdutoNoCarrinhoPorIdToken(Long produtoId) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		Carrinho carrinho = carrinhoUtilidadeService.verificarEPegarCarrinhoCliente(cliente);
+		Carrinho carrinho = carrinhoUtilidadeService.pegarCarrinho(cliente);
 		
 		Iterator<ItemCarrinho> iterator = carrinho.getItemsCarrinho().iterator();
 		while (iterator.hasNext()) {
@@ -57,7 +57,7 @@ public class CarrinhoUserService {
 	@Transactional
 	public MostrarCarrinhoClienteDTO pegarCarrinhoClientePorIdToken() {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		Carrinho carrinho = carrinhoUtilidadeService.verificarEPegarCarrinhoCliente(cliente);
+		Carrinho carrinho = carrinhoUtilidadeService.pegarCarrinho(cliente);
 
 		return carrinhoMapper.carrinhoParaMostrarCarrinhoClienteDTO(carrinho);
 	}
@@ -70,7 +70,7 @@ public class CarrinhoUserService {
 		}
 		
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		Carrinho carrinho = carrinhoUtilidadeService.verificarEPegarCarrinhoCliente(cliente);
+		Carrinho carrinho = carrinhoUtilidadeService.pegarCarrinho(cliente);
 
 		List<ItemCarrinho> itensCarrinho = carrinho.getItemsCarrinho();
 		for (ItemCarrinho item : itensCarrinho) {
@@ -94,7 +94,7 @@ public class CarrinhoUserService {
 	@Transactional
 	public void setarQuantidadeProdutoNoCarrinhoPorIdToken(AdicionarItemCarrinhoDTO itemCarrinhoDTO) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		Carrinho carrinho = carrinhoUtilidadeService.verificarEPegarCarrinhoCliente(cliente);
+		Carrinho carrinho = carrinhoUtilidadeService.pegarCarrinho(cliente);
 
 		Iterator<ItemCarrinho> iterator = carrinho.getItemsCarrinho().iterator();
 		while (iterator.hasNext()) {
