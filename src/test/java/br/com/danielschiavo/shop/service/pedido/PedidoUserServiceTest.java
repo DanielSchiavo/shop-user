@@ -23,12 +23,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import br.com.danielschiavo.JwtUtilTest;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.repository.pedido.PedidoRepository;
 import br.com.danielschiavo.repository.produto.ProdutoRepository;
-import br.com.danielschiavo.service.cliente.CarrinhoUtilidadeService;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
-import br.com.danielschiavo.shop.mapper.pedido.PedidoMapperImpl;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.Cliente.ClienteBuilder;
 import br.com.danielschiavo.shop.model.cliente.cartao.Cartao;
@@ -57,12 +56,12 @@ import br.com.danielschiavo.shop.model.produto.Produto;
 import br.com.danielschiavo.shop.model.produto.Produto.ProdutoBuilder;
 import br.com.danielschiavo.shop.model.produto.categoria.Categoria;
 import br.com.danielschiavo.shop.model.produto.categoria.Categoria.CategoriaBuilder;
-import br.com.danielschiavo.shop.service.cliente.CarrinhoUserService;
-import br.com.danielschiavo.shop.service.cliente.CartaoUserService;
-import br.com.danielschiavo.shop.service.cliente.ClienteAdminService;
-import br.com.danielschiavo.shop.service.cliente.EnderecoUserService;
+import br.com.danielschiavo.shop.service.pedido.feign.CarrinhoServiceClient;
+import br.com.danielschiavo.shop.service.pedido.feign.CartaoServiceClient;
+import br.com.danielschiavo.shop.service.pedido.feign.FileStoragePedidoService;
+import br.com.danielschiavo.shop.service.pedido.feign.PedidoImagemProdutoRequest;
+import br.com.danielschiavo.shop.service.pedido.feign.endereco.EnderecoServiceClient;
 import br.com.danielschiavo.shop.service.pedido.validacoes.ValidadorCriarNovoPedido;
-import br.com.danielschiavo.shop.services.filestorage.FileStoragePedidoService;
 
 @ExtendWith(MockitoExtension.class)
 class PedidoUserServiceTest {
@@ -74,34 +73,28 @@ class PedidoUserServiceTest {
 	private PedidoUserService pedidoUserService;
 	
 	@Mock
+	private Cliente cliente;
+	
+	@Mock
 	private PedidoRepository pedidoRepository;
 	
 	@Mock
 	private FileStoragePedidoService fileStoragePedidoService;
 	
 	@Mock
-	private ProdutoUtilidadeService produtoUtilidadeService;
-	
-	@Mock
 	private ProdutoRepository produtoRepository;
 	
 	@Mock
-	private Cliente cliente;
+	private CarrinhoServiceClient carrinhoServiceClient;
 	
 	@Mock
-	private ClienteAdminService clienteService;
+	private EnderecoServiceClient enderecoServiceClient;
 	
 	@Mock
-	private CarrinhoUserService carrinhoService;
+	private CartaoServiceClient cartaoServiceClient;
 	
 	@Mock
-	private EnderecoUserService enderecoService;
-	
-	@Mock
-	private CartaoUserService cartaoService;
-	
-	@Mock
-	private CarrinhoUtilidadeService carrinhoUtilidadeService;
+	private ProdutoUtilidadeService produtoUtilidadeService;
 	
 	@Spy
 	private List<ValidadorCriarNovoPedido> validadores = new ArrayList<>();
@@ -123,6 +116,8 @@ class PedidoUserServiceTest {
 	private ClienteBuilder clienteBuilder = Cliente.builder();
 	
 	private CategoriaBuilder categoriaBuilder = Categoria.builder();
+	
+	private String tokenUser = "Bearer ".concat(JwtUtilTest.generateTokenUser());
 	
     @BeforeEach
     void setUp() {
@@ -148,10 +143,11 @@ class PedidoUserServiceTest {
 		
 		byte[] bytesImagem = "Hello world".getBytes();
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", bytesImagem);
-		when(fileStoragePedidoService.pegarImagemPedidoPorNome(any())).thenReturn(arquivoInfoDTO);
-		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
+		when(fileStoragePedidoService.pegarImagemPedido(any())).thenReturn(arquivoInfoDTO);
+		when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
+		when(usuarioAutenticadoService.getTokenComBearer()).thenReturn(tokenUser);
 		Pageable pageable = PageRequest.of(0, 10);
-		BDDMockito.when(pedidoRepository.findAllByCliente(cliente, pageable)).thenReturn(pagePedido);
+		when(pedidoRepository.findAllByCliente(cliente, pageable)).thenReturn(pagePedido);
 		
 		//ACT
 		Page<MostrarPedidoDTO> pageMostrarPedidoDTO = pedidoUserService.pegarPedidosClientePorIdToken(pageable);
@@ -234,11 +230,12 @@ class PedidoUserServiceTest {
 				  .getProduto();
 		//When
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", "Qualquercoisa".getBytes());
-		when(produtoUtilidadeService.verificarSeProdutoExistePorIdEAtivoTrue(1L)).thenReturn(produto);
+		when(produtoUtilidadeService.pegarProdutoPorIdEAtivoTrue(1L)).thenReturn(produto);
 		when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
+		when(usuarioAutenticadoService.getTokenComBearer()).thenReturn(tokenUser);
 		when(produtoUtilidadeService.pegarNomePrimeiraImagem(produto)).thenReturn(arquivoInfoDTO.nomeArquivo());
-		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(produto.getArquivosProduto().get(0).getNome(), produto.getId())).thenReturn("Padrao.jpeg");
-		when(fileStoragePedidoService.pegarImagemPedidoPorNome(any())).thenReturn(arquivoInfoDTO);
+		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new PedidoImagemProdutoRequest(produto.getArquivosProduto().get(0).getNome(), produto.getId()))).thenReturn("Padrao.jpeg");
+		when(fileStoragePedidoService.pegarImagemPedido(any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		CriarPedidoDTO criarPedidoDTO = fabricaCriarPedidoDTO
@@ -298,14 +295,15 @@ class PedidoUserServiceTest {
 		List<Produto> produtos = new ArrayList<>(List.of(produto, produto2));
 		//When
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", "Bytes arquivo padrao.jpeg".getBytes());
-		when(produtoUtilidadeService.verificarSeProdutoExistePorIdEAtivoTrue(1L)).thenReturn(produto);
-		when(produtoUtilidadeService.verificarSeProdutoExistePorIdEAtivoTrue(2L)).thenReturn(produto2);
-		when(enderecoService.verificarSeEnderecoExistePorIdEnderecoECliente(1L, cliente)).thenReturn(endereco);
-		when(cartaoService.verificarSeCartaoExistePorIdCartaoECliente(1L, cliente)).thenReturn(cartao);
+		when(produtoUtilidadeService.pegarProdutoPorIdEAtivoTrue(1L)).thenReturn(produto);
+		when(produtoUtilidadeService.pegarProdutoPorIdEAtivoTrue(2L)).thenReturn(produto2);
+		when(enderecoServiceClient.pegarEnderecoDoClientePorId(1L, tokenUser)).thenReturn(endereco);
+		when(cartaoServiceClient.pegarCartao(1L, tokenUser)).thenReturn(cartao);
 		when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
+		when(usuarioAutenticadoService.getTokenComBearer()).thenReturn(tokenUser);
 		when(produtoUtilidadeService.pegarNomePrimeiraImagem(produto)).thenReturn(arquivoInfoDTO.nomeArquivo());
-		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(produto.getArquivosProduto().get(0).getNome(), produto.getId())).thenReturn("Padrao.jpeg");
-		when(fileStoragePedidoService.pegarImagemPedidoPorNome(any())).thenReturn(arquivoInfoDTO);
+		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new PedidoImagemProdutoRequest(produto.getArquivosProduto().get(0).getNome(), produto.getId()))).thenReturn("Padrao.jpeg");
+		when(fileStoragePedidoService.pegarImagemPedido(any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		CriarPedidoDTO criarPedidoDTO = fabricaCriarPedidoDTO
@@ -323,7 +321,7 @@ class PedidoUserServiceTest {
 		//ASSERT
 		BDDMockito.then(validador1).should().validar(criarPedidoDTO, cliente);
 		BDDMockito.then(validador2).should().validar(criarPedidoDTO, cliente);
-		BDDMockito.then(carrinhoUtilidadeService).should(times(1)).deletarItemsCarrinhoAposPedidoGerado(any(), any());
+		BDDMockito.then(carrinhoServiceClient).should(times(1)).deletarProdutosNoCarrinho(any(), any());
 		
 		//Comparando MostrarPedidoDTO
 		Assertions.assertEquals(cliente.getId(), mostrarPedidoDTO.idCliente());
