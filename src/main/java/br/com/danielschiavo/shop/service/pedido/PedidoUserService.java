@@ -12,10 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.pedido.PedidoMapper;
 import br.com.danielschiavo.repository.pedido.PedidoRepository;
-import br.com.danielschiavo.service.cliente.CarrinhoUtilidadeService;
-import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
+import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.cartao.Cartao;
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco;
@@ -27,11 +25,14 @@ import br.com.danielschiavo.shop.model.pedido.dto.MostrarProdutoDoPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.itempedido.ItemPedido;
 import br.com.danielschiavo.shop.model.pedido.itempedido.ItemPedido.ItemPedidoBuilder;
 import br.com.danielschiavo.shop.model.pedido.pagamento.MetodoPagamento;
-import br.com.danielschiavo.shop.model.produto.Produto;
-import br.com.danielschiavo.shop.service.cliente.CartaoUserService;
-import br.com.danielschiavo.shop.service.cliente.EnderecoUserService;
+import br.com.danielschiavo.shop.service.pedido.feign.CarrinhoServiceClient;
+import br.com.danielschiavo.shop.service.pedido.feign.CartaoServiceClient;
+import br.com.danielschiavo.shop.service.pedido.feign.FileStoragePedidoService;
+import br.com.danielschiavo.shop.service.pedido.feign.PedidoImagemProdutoRequest;
+import br.com.danielschiavo.shop.service.pedido.feign.ProdutoPrimeiraImagemEAtivoResponse;
+import br.com.danielschiavo.shop.service.pedido.feign.ProdutoServiceClient;
+import br.com.danielschiavo.shop.service.pedido.feign.endereco.EnderecoServiceClient;
 import br.com.danielschiavo.shop.service.pedido.validacoes.ValidadorCriarNovoPedido;
-import br.com.danielschiavo.shop.services.filestorage.FileStoragePedidoService;
 import jakarta.transaction.Transactional;
 import lombok.Setter;
 
@@ -49,16 +50,16 @@ public class PedidoUserService {
 	private FileStoragePedidoService fileStoragePedidoService;
 
 	@Autowired
-	private ProdutoUtilidadeService produtoUtilidadeService;
+	private ProdutoServiceClient produtoServiceClient;
 	
 	@Autowired
-	private EnderecoUserService enderecoService;
+	private EnderecoServiceClient enderecoServiceClient;
 	
 	@Autowired
-	private CartaoUserService cartaoService;
+	private CartaoServiceClient cartaoServiceClient;
 	
 	@Autowired
-	private CarrinhoUtilidadeService carrinhoUtilidadeService;
+	private CarrinhoServiceClient carrinhoServiceClient;
 	
 	@Autowired
 	private List<ValidadorCriarNovoPedido> validador;
@@ -89,12 +90,13 @@ public class PedidoUserService {
 	@Transactional
 	public MostrarPedidoDTO criarPedidoPorIdToken(CriarPedidoDTO pedidoDTO) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
+		String tokenComBearer = usuarioAutenticadoService.getTokenComBearer();
 		validador.forEach(v -> v.validar(pedidoDTO, cliente));
 		
-		Pedido pedido = criarEntidadePedidoERelacionamentos(pedidoDTO, cliente);
+		Pedido pedido = criarEntidadePedidoERelacionamentos(pedidoDTO, cliente, tokenComBearer);
 		if (pedidoDTO.veioPeloCarrinho()) {
 			List<Long> ids = pedidoDTO.items().stream().map(item -> item.idProduto()).collect(Collectors.toList());
-			carrinhoUtilidadeService.deletarItemsCarrinhoAposPedidoGerado(ids, cliente);
+			carrinhoServiceClient.deletarProdutosNoCarrinho(ids, tokenComBearer);
 		}
 		
 		pedidoDTO.pagamento().metodoPagamento().getProcessador(pedidoDTO, cliente).executa();
@@ -114,47 +116,57 @@ public class PedidoUserService {
 //	------------------------------
 	
 	
-	private Pedido criarEntidadePedidoERelacionamentos(CriarPedidoDTO pedidoDTO, Cliente cliente) {
+	private Pedido criarEntidadePedidoERelacionamentos(CriarPedidoDTO pedidoDTO, Cliente cliente, String tokenComBearer) {
 		PedidoBuilder pedidoBuilder = this.pedidoBuilder.cliente(cliente);
-		criarESetarPagamento(pedidoDTO, pedidoBuilder, cliente);
-		criarESetarEntrega(pedidoDTO, pedidoBuilder, cliente);
+		criarESetarPagamento(pedidoDTO, pedidoBuilder, tokenComBearer);
+		criarESetarEntrega(pedidoDTO, pedidoBuilder, tokenComBearer);
 		criarESetarItemsPedido(pedidoDTO, pedidoBuilder);
 		return pedidoBuilder.getPedido();
 	}
 
-	private PedidoBuilder criarESetarEntrega(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder, Cliente cliente) {
+	private PedidoBuilder criarESetarEntrega(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder, String tokenComBearer) {
 		Long idEndereco = pedidoDTO.entrega().idEndereco();
 
 		pedidoBuilder.entregaIdTipo(null, pedidoDTO.entrega().tipoEntrega());
 		if (idEndereco != null) {
-			Endereco endereco = enderecoService.verificarSeEnderecoExistePorIdEnderecoECliente(idEndereco, cliente);
+			Endereco endereco = enderecoServiceClient.pegarEnderecoDoClientePorId(idEndereco, tokenComBearer);
 			pedidoBuilder.entregaEndereco(endereco);
 		}
 		return pedidoBuilder;
 	}
 
 	private void criarESetarItemsPedido(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder) {
-		pedidoDTO.items().forEach(item -> {
-			Produto produto = produtoUtilidadeService.verificarSeProdutoExistePorIdEAtivoTrue(item.idProduto());
-			String first = produtoUtilidadeService.pegarNomePrimeiraImagem(produto);
-			String nomeImagemPedido = fileStoragePedidoService.persistirOuRecuperarImagemPedido(first, produto.getId());
-			ItemPedido itemPedido = itemPedidoBuilder.preco(produto.getPreco())
-							 .quantidade(item.quantidade())
-							 .nomeProduto(produto.getNome())
-							 .primeiraImagem(nomeImagemPedido)
-							 .subTotal(produto.getPreco().multiply(BigDecimal.valueOf(item.quantidade())))
-							 .produtoId(produto.getId()).build();
+		List<Long> produtosId = pedidoDTO.items().stream().map(item -> item.idProduto()).collect(Collectors.toList());
+		List<ProdutoPrimeiraImagemEAtivoResponse> listaDadosProdutos = produtoServiceClient.pegarPrimeiraImagemEVerificarSeEstaAtivo(produtosId);
+		
+		listaDadosProdutos.forEach(produto -> {
+			if (produto.ativo() == null || produto.primeiraImagem() == null) {
+				throw new ValidacaoException("Algum produto enviado para fazer um pedido não existe");
+			}
+			if (produto.ativo() == false) {
+				throw new ValidacaoException("Não foi possivel prosseguir com o pedido porque o produto de id número " + produto.produtoId() + " não está ativo");
+			}
+			String nomeImagemPedido = fileStoragePedidoService.persistirOuRecuperarImagemPedido(new PedidoImagemProdutoRequest(produto.primeiraImagem(), produto.produtoId()));
+			
+			Integer quantidade = pedidoDTO.items().stream().filter(item -> item.idProduto() == produto.produtoId()).findFirst().get().quantidade();
+			
+			ItemPedido itemPedido = itemPedidoBuilder.preco(produto.preco())
+													 .quantidade(quantidade)
+													 .nomeProduto(produto.nome())
+													 .primeiraImagem(nomeImagemPedido)
+													 .subTotal(produto.preco().multiply(BigDecimal.valueOf(quantidade)))
+													 .produtoId(produto.produtoId()).build();
 			pedidoBuilder.comItemPedido(itemPedido);
 		});
 	}
 
-	private PedidoBuilder criarESetarPagamento(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder, Cliente cliente) {
+	private PedidoBuilder criarESetarPagamento(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder, String tokenComBearer) {
 		MetodoPagamento metodoPagamentoDTO = pedidoDTO.pagamento().metodoPagamento();
 		pedidoBuilder.pagamentoIdMetodo(null, metodoPagamentoDTO);
 		
 		Long idCartao = pedidoDTO.pagamento().idCartao();
 		if (idCartao != null) {
-			Cartao cartao = cartaoService.verificarSeCartaoExistePorIdCartaoECliente(idCartao, cliente);
+			Cartao cartao = cartaoServiceClient.pegarCartao(idCartao, tokenComBearer);
 			pedidoBuilder.pagamentoCartao(cartao);
 			String numeroParcelas = pedidoDTO.pagamento().numeroParcelas();
 			if (numeroParcelas != null) {
