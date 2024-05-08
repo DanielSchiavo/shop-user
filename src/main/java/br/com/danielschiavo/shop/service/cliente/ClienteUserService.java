@@ -61,14 +61,11 @@ public class ClienteUserService {
 	}
 	
 	@Transactional
-	public Map<String, Object> cadastrarCliente(CadastrarClienteDTO clienteDTO) {
+	public String cadastrarCliente(CadastrarClienteDTO clienteDTO) {
 		Cliente cliente = clienteMapper.cadastrarClienteDtoParaCliente(clienteDTO);
 		clienteRepository.save(cliente);
 		
-		Map<String, Object> resposta = new HashMap<>();
-		resposta.put("mensagem", "Cadastrado com sucesso!");
-		resposta.put("clienteId", cliente.getId());
-		return resposta;
+		return "Cadastrado com sucesso!";
 	}
 	
 	@Transactional

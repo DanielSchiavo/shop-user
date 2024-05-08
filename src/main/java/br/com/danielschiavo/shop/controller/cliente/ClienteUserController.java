@@ -2,7 +2,6 @@ package br.com.danielschiavo.shop.controller.cliente;
 
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,7 +21,6 @@ import br.com.danielschiavo.shop.model.cliente.dto.AlterarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.AlterarFotoPerfilDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO;
-import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.service.cliente.ClienteUserService;
 import br.com.danielschiavo.shop.service.cliente.MostrarClientePaginaInicialDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -75,9 +73,8 @@ public class ClienteUserController {
 	public ResponseEntity<?> cadastrarCliente(@RequestBody @Valid CadastrarClienteDTO cadastrarClienteDTO,
 			UriComponentsBuilder uriBuilder) {
 		try {
-			Map<String, Object> respostaCadastrarCliente = clienteUserService.cadastrarCliente(cadastrarClienteDTO);
-			var uri = uriBuilder.path("/shop/cliente/{id}").buildAndExpand(respostaCadastrarCliente.get("clienteId")).toUri();
-			return ResponseEntity.created(uri).body(respostaCadastrarCliente.get("mensagem"));
+			String respostaCadastrarCliente = clienteUserService.cadastrarCliente(cadastrarClienteDTO);
+			return ResponseEntity.status(HttpStatus.CREATED).body(respostaCadastrarCliente);
 		} catch (ValidacaoException e) {
 			return ResponseEntity.badRequest().body(new MensagemErroDTO(HttpStatus.BAD_REQUEST, e));
 		}
