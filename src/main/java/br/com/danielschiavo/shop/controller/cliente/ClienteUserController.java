@@ -96,8 +96,8 @@ public class ClienteUserController {
 	@Operation(summary = "Alterar a foto do perfil do cliente")
 	public ResponseEntity<?> alterarFotoPerfilPorIdToken(@RequestBody @Valid AlterarFotoPerfilDTO alterarFotoPerfilDTO) {
 		try {
-			ArquivoInfoDTO arquivoInfoDTO = clienteUserService.alterarFotoPerfilPorIdToken(alterarFotoPerfilDTO);
-			return ResponseEntity.ok(arquivoInfoDTO);
+			String mensagemAlterarFotoPerfil = clienteUserService.alterarFotoPerfilPorIdToken(alterarFotoPerfilDTO);
+			return ResponseEntity.ok(mensagemAlterarFotoPerfil);
 			
 		} catch (ValidacaoException e) {
 			HttpStatus status = HttpStatus.NOT_FOUND;
