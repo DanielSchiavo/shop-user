@@ -11,8 +11,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,12 +33,7 @@ import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO.CadastrarClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO.MostrarClienteDTOBuilder;
-import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO;
-import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO.CadastrarEnderecoDTOBuilder;
-import br.com.danielschiavo.shop.model.cliente.endereco.MostrarEnderecoDTO;
-import br.com.danielschiavo.shop.model.cliente.endereco.MostrarEnderecoDTO.MostrarEnderecoDTOBuilder;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
-import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO.ArquivoInfoDTOBuilder;
 import br.com.danielschiavo.shop.service.cliente.ClienteUserService;
 import br.com.danielschiavo.shop.service.cliente.MostrarClientePaginaInicialDTO;
 import br.com.danielschiavo.shop.service.cliente.MostrarClientePaginaInicialDTO.MostrarClientePaginaInicialDTOBuilder;
@@ -173,10 +166,9 @@ class ClienteUserControllerTest {
 	}
 	
 	@Test
-	@DisplayName("Cadastrar cliente deve retornar http 201 quando informacoes estão válidas sem endereço")
-	void cadastrarCliente_ClienteValidoSemEndereco_DeveRetornarCreated() throws IOException, Exception {
+	@DisplayName("Cadastrar cliente deve retornar http 201 quando informacoes estão válidas")
+	void cadastrarCliente_ClienteValido_DeveRetornarCreated() throws IOException, Exception {
 		//ARRANGE
-		MostrarClienteDTO mostrarClienteDTO = mostrarClienteDTOBuilder.cpf("12345671012").nome("Junior").sobrenome("da Silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("juniordasilva@gmail.com").celular("27996101055").fotoPerfil(new ArquivoInfoDTO("Padrao.jpeg", "Bytes da imagem padrao".getBytes())).enderecos(null).build();
 		String mensagem = "Cadastrado com sucesso!";
 		when(clienteUserService.cadastrarCliente(any())).thenReturn(mensagem);
 		

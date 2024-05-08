@@ -16,28 +16,19 @@ import org.mockito.BDDMockito;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.cliente.ClienteMapper;
 import br.com.danielschiavo.repository.cliente.ClienteRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.Cliente.ClienteBuilder;
-import br.com.danielschiavo.shop.model.cliente.cartao.Cartao;
-import br.com.danielschiavo.shop.model.cliente.cartao.Cartao.CartaoBuilder;
-import br.com.danielschiavo.shop.model.cliente.cartao.TipoCartao;
 import br.com.danielschiavo.shop.model.cliente.dto.AlterarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.AlterarClienteDTO.AlterarClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.dto.AlterarFotoPerfilDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO.CadastrarClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO;
-import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO;
-import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO.CadastrarEnderecoDTOBuilder;
-import br.com.danielschiavo.shop.model.cliente.endereco.Endereco;
-import br.com.danielschiavo.shop.model.cliente.endereco.Endereco.EnderecoBuilder;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.service.cliente.mapper.ClienteMapperImpl;
 
@@ -70,7 +61,7 @@ class ClienteUserServiceTest {
 	
     @BeforeEach
     void setUp() {
-    	ClienteMapper clienteMapper = new ClienteMapperImpl();
+    	ClienteMapperImpl clienteMapper = new ClienteMapperImpl();
     	clienteUserService.setClienteMapper(clienteMapper);
     }
 	
@@ -152,7 +143,7 @@ class ClienteUserServiceTest {
 	@DisplayName("Cadastrar cliente deve funcionar normalmente quando CadastrarClienteDTO valido é enviado")
 	void cadastrarCliente_DtoEnviadoValido() {
 		//ACT
-		CadastrarClienteDTO cadastrarClienteDTO = cadastrarClienteDTOBuilder.cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("outrafoto.jpeg").endereco(cadastrarEnderecoDTO).build();
+		CadastrarClienteDTO cadastrarClienteDTO = cadastrarClienteDTOBuilder.cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("outrafoto.jpeg").build();
 		String mensagem = clienteUserService.cadastrarCliente(cadastrarClienteDTO);
 		
 		//ASSERT
