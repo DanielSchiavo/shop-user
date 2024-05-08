@@ -11,6 +11,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import br.com.danielschiavo.feign.CarrinhoServiceClient;
+import br.com.danielschiavo.feign.CartaoServiceClient;
+import br.com.danielschiavo.feign.pedido.FileStoragePedidoService;
+import br.com.danielschiavo.feign.pedido.RequestPedidoImagemProduto;
+import br.com.danielschiavo.feign.produto.ResponseProdutoPrimeiraImagemEAtivo;
+import br.com.danielschiavo.feign.produto.ProdutoServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.repository.pedido.PedidoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
@@ -25,12 +31,6 @@ import br.com.danielschiavo.shop.model.pedido.dto.MostrarProdutoDoPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.itempedido.ItemPedido;
 import br.com.danielschiavo.shop.model.pedido.itempedido.ItemPedido.ItemPedidoBuilder;
 import br.com.danielschiavo.shop.model.pedido.pagamento.MetodoPagamento;
-import br.com.danielschiavo.shop.service.pedido.feign.CarrinhoServiceClient;
-import br.com.danielschiavo.shop.service.pedido.feign.CartaoServiceClient;
-import br.com.danielschiavo.shop.service.pedido.feign.FileStoragePedidoService;
-import br.com.danielschiavo.shop.service.pedido.feign.PedidoImagemProdutoRequest;
-import br.com.danielschiavo.shop.service.pedido.feign.ProdutoPrimeiraImagemEAtivoResponse;
-import br.com.danielschiavo.shop.service.pedido.feign.ProdutoServiceClient;
 import br.com.danielschiavo.shop.service.pedido.feign.endereco.EnderecoServiceClient;
 import br.com.danielschiavo.shop.service.pedido.validacoes.ValidadorCriarNovoPedido;
 import jakarta.transaction.Transactional;
@@ -137,7 +137,7 @@ public class PedidoUserService {
 
 	private void criarESetarItemsPedido(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder) {
 		List<Long> produtosId = pedidoDTO.items().stream().map(item -> item.idProduto()).collect(Collectors.toList());
-		List<ProdutoPrimeiraImagemEAtivoResponse> listaDadosProdutos = produtoServiceClient.pegarPrimeiraImagemEVerificarSeEstaAtivo(produtosId);
+		List<ResponseProdutoPrimeiraImagemEAtivo> listaDadosProdutos = produtoServiceClient.pegarPrimeiraImagemEVerificarSeEstaAtivo(produtosId);
 		
 		listaDadosProdutos.forEach(produto -> {
 			if (produto.ativo() == null || produto.primeiraImagem() == null) {
@@ -146,7 +146,7 @@ public class PedidoUserService {
 			if (produto.ativo() == false) {
 				throw new ValidacaoException("Não foi possivel prosseguir com o pedido porque o produto de id número " + produto.produtoId() + " não está ativo");
 			}
-			String nomeImagemPedido = fileStoragePedidoService.persistirOuRecuperarImagemPedido(new PedidoImagemProdutoRequest(produto.primeiraImagem(), produto.produtoId()));
+			String nomeImagemPedido = fileStoragePedidoService.persistirOuRecuperarImagemPedido(new RequestPedidoImagemProduto(produto.primeiraImagem(), produto.produtoId()));
 			
 			Integer quantidade = pedidoDTO.items().stream().filter(item -> item.idProduto() == produto.produtoId()).findFirst().get().quantidade();
 			

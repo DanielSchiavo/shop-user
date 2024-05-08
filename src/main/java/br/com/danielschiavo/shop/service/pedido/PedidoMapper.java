@@ -6,10 +6,10 @@ import java.util.List;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 
+import br.com.danielschiavo.feign.pedido.FileStoragePedidoService;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.model.pedido.Pedido;
 import br.com.danielschiavo.shop.model.pedido.dto.MostrarProdutoDoPedidoDTO;
-import br.com.danielschiavo.shop.service.pedido.feign.FileStoragePedidoService;
 
 @Mapper(componentModel = "spring")
 public abstract class PedidoMapper {
