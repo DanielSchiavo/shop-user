@@ -18,21 +18,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-import br.com.danielschiavo.mapper.produto.ProdutoMapper;
-import br.com.danielschiavo.repository.cliente.CarrinhoRepository;
 import br.com.danielschiavo.repository.produto.ProdutoRepository;
-import br.com.danielschiavo.repository.produto.SubCategoriaRepository;
-import br.com.danielschiavo.service.produto.CategoriaUtilidadeService;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.model.pedido.TipoEntrega;
 import br.com.danielschiavo.shop.model.produto.Produto;
 import br.com.danielschiavo.shop.model.produto.Produto.ProdutoBuilder;
-import br.com.danielschiavo.shop.model.produto.categoria.Categoria;
-import br.com.danielschiavo.shop.model.produto.categoria.Categoria.CategoriaBuilder;
 import br.com.danielschiavo.shop.model.produto.dto.DetalharProdutoDTO;
 import br.com.danielschiavo.shop.model.produto.dto.MostrarProdutosDTO;
-import br.com.danielschiavo.shop.services.filestorage.FileStorageProdutoService;
+import br.com.danielschiavo.shop.model.produto.subcategoria.SubCategoria;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoUserServiceTest {
@@ -44,26 +38,12 @@ class ProdutoUserServiceTest {
 	private ProdutoRepository produtoRepository;
 	
 	@Mock
-	private CarrinhoRepository carrinhoRepository;
-	
-	@Mock
-	private SubCategoriaRepository subCategoriaRepository;
-	
-	@Mock
 	private FileStorageProdutoService fileStorageProdutoService;
 	
 	@Mock
 	private ProdutoUtilidadeService produtoUtilidadeService;
 	
-	@Mock
-	private CategoriaUtilidadeService categoriaUtilidadeService;
-	
-	@Mock
-	private SubCategoriaUserService subCategoriaService;
-	
 	private ProdutoBuilder produtoBuilder = Produto.builder();
-	
-	private CategoriaBuilder categoriaBuilder = Categoria.builder();
 	
 	@BeforeEach
 	public void beforeEach() {
@@ -74,12 +54,8 @@ class ProdutoUserServiceTest {
 	@Test
 	void listarProdutos() {
 		//ARRANGE
-		List<Categoria> categorias = categoriaBuilder.categoria(1L, "Computadores")
-												  .comSubCategoria(1L, "Teclado")
-												  .comSubCategoria(2L, "Mouse")
-											  .categoria(2L, "Softwares")
-											  	  .comSubCategoria(3L, "Administrativo")
-											  .getCategorias();
+		SubCategoria subCategoria = SubCategoria.builder().id(1L).build();
+		SubCategoria subCategoria2 = SubCategoria.builder().id(2L).build();
 		//Produto		
 		Produto produto = produtoBuilder.id(1L)
 										.nome("Mouse gamer")
@@ -90,7 +66,7 @@ class ProdutoUserServiceTest {
 										.tipoEntregaIdTipo(2L, TipoEntrega.RETIRADA_NA_LOJA)
 										.tipoEntregaIdTipo(3L, TipoEntrega.ENTREGA_EXPRESSA)
 										.arquivoProdutoIdNomePosicao(1l, "Padrao.jpeg", (byte) 0)
-										.subCategoria(categorias.get(0).getSubCategorias().get(1))
+										.subCategoria(subCategoria)
 										.getProduto();
 		Produto produto2 = produtoBuilder.id(2L)
 										 .nome("Sistema Digisat Administrador")
@@ -99,7 +75,7 @@ class ProdutoUserServiceTest {
 										 .quantidade(100)
 										 .tipoEntregaIdTipo(4L, TipoEntrega.ENTREGA_DIGITAL)
 										 .arquivoProdutoIdNomePosicao(2L, "Padrao.jpeg", (byte) 0)
-										 .subCategoria(categorias.get(1).getSubCategorias().get(0))
+										 .subCategoria(subCategoria2)
 										 .getProduto();
 		List<Produto> produtos = new ArrayList<>(List.of(produto, produto2));
 		
@@ -109,9 +85,7 @@ class ProdutoUserServiceTest {
 		//When
 		when(produtoRepository.findAll(pageable)).thenReturn(pageImplProduto);
 		when(produtoUtilidadeService.pegarNomePrimeiraImagem(any(Produto.class))).thenReturn("Padrao.jpeg");
-		when(fileStorageProdutoService.pegarArquivoProdutoPorNome(any(String.class))).thenReturn(arquivoInfoDTO);
-		when(categoriaUtilidadeService.verificarSeExisteCategoriaPorId(1L)).thenReturn(categorias.get(0));
-		when(categoriaUtilidadeService.verificarSeExisteCategoriaPorId(2L)).thenReturn(categorias.get(1));
+		when(fileStorageProdutoService.pegarArquivoProduto(any(String.class))).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		Page<MostrarProdutosDTO> pageMostrarProdutosDTO = produtoUserService.listarProdutos(pageable);
@@ -127,22 +101,13 @@ class ProdutoUserServiceTest {
 			Assertions.assertEquals(produtos.get(i).getQuantidade(), listaMostrarProdutos.get(i).getQuantidade());
 			Assertions.assertEquals(produtos.get(i).getAtivo(), listaMostrarProdutos.get(i).getAtivo());
 			Assertions.assertArrayEquals(arquivoInfoDTO.bytesArquivo(), listaMostrarProdutos.get(i).getPrimeiraImagem());
-			//Categoria
-			Assertions.assertEquals(produtos.get(i).getSubCategoria().getCategoria().getId(), listaMostrarProdutos.get(i).getCategoria().getId());
-			Assertions.assertEquals(produtos.get(i).getSubCategoria().getCategoria().getNome(), listaMostrarProdutos.get(i).getCategoria().getNome());
-			//SubCategoria
-			Assertions.assertEquals(produtos.get(i).getSubCategoria().getId(), listaMostrarProdutos.get(i).getCategoria().getSubCategoria().id());
-			Assertions.assertEquals(produtos.get(i).getSubCategoria().getNome(), listaMostrarProdutos.get(i).getCategoria().getSubCategoria().nome());
 		}
 	}
 	
 	@Test
 	void detalharProdutoPorId() {
 		//ARRANGE
-		Categoria categoria = categoriaBuilder.categoria(1L, "Computadores")
-														  .comSubCategoria(1L, "Teclado")
-														  .comSubCategoria(2L, "Mouse")
-													  .getCategoria();
+		SubCategoria subCategoria = SubCategoria.builder().id(1L).build();
 		//Produto		
 		Produto produto = produtoBuilder.id(1L)
 										.nome("Mouse gamer")
@@ -154,24 +119,23 @@ class ProdutoUserServiceTest {
 										.tipoEntregaIdTipo(3L, TipoEntrega.ENTREGA_EXPRESSA)
 										.arquivoProdutoIdNomePosicao(1L, "Padrao.jpeg", (byte) 0)
 										.arquivoProdutoIdNomePosicao(2L, "Padrao.jpeg", (byte) 1)
-										.subCategoria(categoria.getSubCategorias().get(1))
+										.subCategoria(subCategoria)
 										.getProduto();
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", "Bytes do arquivo Padrao.jpeg".getBytes());
 		ArquivoInfoDTO arquivoInfoDTO2 = new ArquivoInfoDTO("Padrao.jpeg", "Bytes do arquivo Padrao.jpeg".getBytes());
 		List<ArquivoInfoDTO> listaArquivosInfoDTO = new ArrayList<>(List.of(arquivoInfoDTO, arquivoInfoDTO2));
 		//When
 		Long idProduto = 1L;
-		when(produtoUtilidadeService.verificarSeProdutoExistePorId(idProduto)).thenReturn(produto);
+		when(produtoUtilidadeService.pegarProdutoPorId(idProduto)).thenReturn(produto);
 		when(produtoUtilidadeService.pegarNomeTodosArquivos(any(Produto.class))).thenReturn(List.of("Padrao.jpeg", "Padrao.jpeg"));
-		when(fileStorageProdutoService.mostrarArquivoProdutoPorListaDeNomes(any())).thenReturn(listaArquivosInfoDTO);
-		when(categoriaUtilidadeService.verificarSeExisteCategoriaPorId(1L)).thenReturn(categoria);
+		when(fileStorageProdutoService.pegarArquivosProduto(any())).thenReturn(listaArquivosInfoDTO);
 		
 		//ACT
 		DetalharProdutoDTO detalharProdutoDTO = produtoUserService.detalharProdutoPorId(idProduto);
 		
 		//ASSERT
 		//Produto
-//		Assertions.assertEquals(produto.getId(), detalharProdutoDTO.getId());
+		Assertions.assertEquals(produto.getId(), detalharProdutoDTO.getId());
 		Assertions.assertEquals(produto.getNome(), detalharProdutoDTO.getNome());
 		Assertions.assertEquals(produto.getPreco(), detalharProdutoDTO.getPreco());
 		Assertions.assertEquals(produto.getQuantidade(), detalharProdutoDTO.getQuantidade());
@@ -180,11 +144,7 @@ class ProdutoUserServiceTest {
 			Assertions.assertEquals(arquivoInfoDTO.nomeArquivo(), arquivo.nomeArquivo());
 			Assertions.assertArrayEquals(arquivoInfoDTO.bytesArquivo(), arquivo.bytesArquivo());
 		});
-		// Categoria
-		Assertions.assertEquals(categoria.getId(), detalharProdutoDTO.getCategoria().getId());
-		Assertions.assertEquals(categoria.getNome(), detalharProdutoDTO.getCategoria().getNome());
 		// SubCategoria
-		Assertions.assertEquals(produto.getSubCategoria().getId(), detalharProdutoDTO.getCategoria().getSubCategoria().id());
-		Assertions.assertEquals(produto.getSubCategoria().getNome(), detalharProdutoDTO.getCategoria().getSubCategoria().nome());
+		Assertions.assertEquals(produto.getSubCategoria().getId(), detalharProdutoDTO.getSubCategoria());
 	}
 }

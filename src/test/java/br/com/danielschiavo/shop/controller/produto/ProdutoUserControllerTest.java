@@ -27,11 +27,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
-import br.com.danielschiavo.shop.model.produto.categoria.MostrarCategoriaComSubCategoriaDTO;
-import br.com.danielschiavo.shop.model.produto.categoria.MostrarCategoriaComSubCategoriaDTO.MostrarCategoriaComSubCategoriaDTOBuilder;
 import br.com.danielschiavo.shop.model.produto.dto.DetalharProdutoDTO;
-import br.com.danielschiavo.shop.model.produto.dto.MostrarProdutosDTO;
 import br.com.danielschiavo.shop.model.produto.dto.DetalharProdutoDTO.DetalharProdutoDTOBuilder;
+import br.com.danielschiavo.shop.model.produto.dto.MostrarProdutosDTO;
 import br.com.danielschiavo.shop.model.produto.dto.MostrarProdutosDTO.MostrarProdutosDTOBuilder;
 import br.com.danielschiavo.shop.service.produto.ProdutoUserService;
 
@@ -53,8 +51,6 @@ class ProdutoUserControllerTest {
 	@Autowired
 	private JacksonTester<DetalharProdutoDTO> detalharProdutoDTOJson;
 	
-	private MostrarCategoriaComSubCategoriaDTOBuilder categoriaBuilder = MostrarCategoriaComSubCategoriaDTO.builder();
-	
 	private MostrarProdutosDTOBuilder mostrarProdutosDTOBuilder = MostrarProdutosDTO.builder();
 	
 	private DetalharProdutoDTOBuilder detalharProdutoDTOBuilderBuilder = DetalharProdutoDTO.builder();;
@@ -63,10 +59,13 @@ class ProdutoUserControllerTest {
 	@DisplayName("Listar produtos deve retornar codigo http 200")
 	void listarProdutos_DeveRetornarOk() throws IOException, Exception {
 		//ARRANGE
-		MostrarCategoriaComSubCategoriaDTO categoria = categoriaBuilder.categoria(1L, "Computadores")
-																	   .comSubCategoria(1L, "Mouses")
-																  .getCategoria();
-		MostrarProdutosDTO mostrarProdutosDTO = mostrarProdutosDTOBuilder.id(1L).nome("Produto1").preco(BigDecimal.valueOf(200.00)).quantidade(5).ativo(true).categoria(categoria).primeiraImagem("Hello world".getBytes()).build();
+		MostrarProdutosDTO mostrarProdutosDTO = mostrarProdutosDTOBuilder
+													.id(1L)
+													.nome("Produto1")
+													.preco(BigDecimal.valueOf(200.00))
+													.quantidade(5)
+													.ativo(true)
+													.primeiraImagem("Hello world".getBytes()).build();
 		Page<MostrarProdutosDTO> pageProdutos = new PageImpl<>(List.of(mostrarProdutosDTO));
 		when(produtoUserService.listarProdutos(any())).thenReturn(pageProdutos);
 		
@@ -81,17 +80,22 @@ class ProdutoUserControllerTest {
 	}
 	
 	@Test
-	@DisplayName("Listar produtos deve retornar codigo http 200")
-	void listarProdutos_ParametroValido_DeveRetornarOk() throws IOException, Exception {
+	@DisplayName("Detalhar produto deve retornar codigo http 200")
+	void detalharProduto_DeveRetornarOk() throws IOException, Exception {
 		//ARRANGE
-		MostrarCategoriaComSubCategoriaDTO categoria = categoriaBuilder.categoria(1L, "Computadores")
-																			.comSubCategoria(1L, "Mouses")
-																	   .getCategoria();
 		byte[] bytes = "Hello world".getBytes();
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("NomeArquivo.jpeg", bytes);
 		ArquivoInfoDTO arquivoInfoDTO2 = new ArquivoInfoDTO("NomeVideo.avi", bytes);
 		List<ArquivoInfoDTO> listaArquivoInfoDTO = new ArrayList<>(List.of(arquivoInfoDTO, arquivoInfoDTO2));
-		DetalharProdutoDTO detalharProdutoDTO = detalharProdutoDTOBuilderBuilder.id(1L).nome("Nome produto").descricao("descricao").preco(BigDecimal.valueOf(200,00)).quantidade(5).ativo(true).categoria(categoria).arquivos(listaArquivoInfoDTO).build();
+		DetalharProdutoDTO detalharProdutoDTO = detalharProdutoDTOBuilderBuilder
+															.id(1L)
+															.nome("Nome produto")
+															.descricao("descricao")
+															.preco(BigDecimal.valueOf(200,00))
+															.quantidade(5)
+															.ativo(true)
+															.subCategoria(1L)
+															.arquivos(listaArquivoInfoDTO).build();
 		when(produtoUserService.detalharProdutoPorId(any())).thenReturn(detalharProdutoDTO);
 		
 		//ACT
