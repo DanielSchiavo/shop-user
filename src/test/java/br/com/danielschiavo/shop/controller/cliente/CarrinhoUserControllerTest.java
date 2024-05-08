@@ -27,7 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import br.com.danielschiavo.shop.JwtUtilTest;
+import br.com.danielschiavo.JwtUtilTest;
 import br.com.danielschiavo.shop.model.cliente.carrinho.MostrarCarrinhoClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.carrinho.MostrarCarrinhoClienteDTO.MostrarCarrinhoClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.AdicionarItemCarrinhoDTO;
@@ -94,15 +94,13 @@ class CarrinhoUserControllerTest {
 	@DisplayName("Pegar carrinho cliente por id token deve retornar codigo http 200 quando token é valido")
 	void pegarCarrinhoClientePorIdToken_TokenValido_DeveRetornarOk() throws IOException, Exception {
 		//ARRANGE
-		MostrarItemCarrinhoClienteDTO mostrarItemCarrinhoClienteDTO = mostrarItemCarrinhoClienteDtoBuilder.idProduto(1L).nomeProduto("Produto1").quantidade(2).preco(BigDecimal.valueOf(200.00)).imagemProduto(null).build();
-		MostrarItemCarrinhoClienteDTO mostrarItemCarrinhoClienteDTO2 = mostrarItemCarrinhoClienteDtoBuilder.idProduto(2L).nomeProduto("Produto2").quantidade(2).preco(BigDecimal.valueOf(300.00)).imagemProduto(null).build();
-		
-		//ACT
+		MostrarItemCarrinhoClienteDTO mostrarItemCarrinhoClienteDTO = mostrarItemCarrinhoClienteDtoBuilder.produtoId(1L).quantidade(2).build();
+		MostrarItemCarrinhoClienteDTO mostrarItemCarrinhoClienteDTO2 = mostrarItemCarrinhoClienteDtoBuilder.produtoId(2L).quantidade(2).build();
 		List<MostrarItemCarrinhoClienteDTO> lista = new ArrayList<>();
 		lista.addAll(List.of(mostrarItemCarrinhoClienteDTO, mostrarItemCarrinhoClienteDTO2));
-		BigDecimal valorTotal = BigDecimal.ZERO;
-		lista.forEach(item -> valorTotal.add(item.preco()));
-		MostrarCarrinhoClienteDTO mostrarCarrinhoClienteDTO = mostrarCarrinhoClienteDTOBuilder.id(2L).itemsCarrinho(lista).valorTotal(valorTotal).build();
+		MostrarCarrinhoClienteDTO mostrarCarrinhoClienteDTO = mostrarCarrinhoClienteDTOBuilder.id(2L).itemsCarrinho(lista).valorTotal(BigDecimal.valueOf(200.00)).build();
+		
+		//ACT
 		when(carrinhoService.pegarCarrinhoClientePorIdToken()).thenReturn(mostrarCarrinhoClienteDTO);
 		var response = mvc.perform(get("/shop/cliente/carrinho")
 				  				.header("Authorization", "Bearer " + tokenUser))
@@ -129,7 +127,7 @@ class CarrinhoUserControllerTest {
 	@DisplayName("Adicionar produtos no carrinho por id token deve retornar http 200 quando token e dto são válidos")
 	void adicionarProdutosNoCarrinhoPorIdToken_TokenValido_DeveRetornarOk() throws IOException, Exception {
 		//ACT
-		AdicionarItemCarrinhoDTO adicionarItemCarrinhoDTO = adicionarItemCarrinhoDTOBuilder.idProduto(1L).quantidade(2).build();
+		AdicionarItemCarrinhoDTO adicionarItemCarrinhoDTO = adicionarItemCarrinhoDTOBuilder.produtoId(1L).quantidade(2).build();
 		var response = mvc.perform(post("/shop/cliente/carrinho")
 								  .header("Authorization", "Bearer " + tokenUser)
 								  .contentType(MediaType.APPLICATION_JSON)
@@ -158,7 +156,7 @@ class CarrinhoUserControllerTest {
 		doNothing().when(carrinhoService).setarQuantidadeProdutoNoCarrinhoPorIdToken(any());
 		
 		//ACT
-		AdicionarItemCarrinhoDTO adicionarItemCarrinhoDTO = adicionarItemCarrinhoDTOBuilder.idProduto(1L).quantidade(2).build();
+		AdicionarItemCarrinhoDTO adicionarItemCarrinhoDTO = adicionarItemCarrinhoDTOBuilder.produtoId(1L).quantidade(2).build();
 		var response = mvc.perform(put("/shop/cliente/carrinho")
 								  .header("Authorization", "Bearer " + tokenUser)
 								  .contentType(MediaType.APPLICATION_JSON)
