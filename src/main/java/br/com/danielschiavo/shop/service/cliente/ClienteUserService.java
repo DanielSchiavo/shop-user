@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.danielschiavo.feign.FileStoragePerfilServiceClient;
+import br.com.danielschiavo.feign.FileStoragePerfilComumServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.mapper.ClienteComumMapper;
 import br.com.danielschiavo.repository.cliente.ClienteRepository;
@@ -38,7 +38,7 @@ public class ClienteUserService {
 	private UsuarioAutenticadoService usuarioAutenticadoService;
 	
 	@Autowired
-	private FileStoragePerfilServiceClient fileStorageServiceClient;
+	private FileStoragePerfilComumServiceClient fileStorageServiceClient;
 
 	@Transactional
 	public void deletarFotoPerfilPorIdToken() throws IOException {
