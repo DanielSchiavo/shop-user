@@ -9,8 +9,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import br.com.danielschiavo.feign.produto.FileStorageProdutoService;
-import br.com.danielschiavo.mapper.ProdutoMapper;
+import br.com.danielschiavo.feign.produto.FileStorageProdutoComumServiceClient;
+import br.com.danielschiavo.mapper.ProdutoComumMapper;
 import br.com.danielschiavo.repository.produto.ProdutoRepository;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
 import br.com.danielschiavo.shop.model.produto.Produto;
@@ -26,10 +26,10 @@ public class ProdutoUserService {
 	private ProdutoRepository produtoRepository;
 
 	@Autowired
-	private FileStorageProdutoService fileStorageProdutoService;
+	private FileStorageProdutoComumServiceClient fileStorageProdutoService;
 
 	@Autowired
-	private ProdutoMapper produtoMapper;
+	private ProdutoComumMapper produtoMapper;
 	
 	@Autowired
 	private ProdutoUtilidadeService produtoUtilidadeService;
