@@ -25,6 +25,7 @@ public abstract class ClienteMapper {
     @Mapping(target = "fotoPerfil", source = "cadastrarClienteDTO.fotoPerfil", defaultValue = "Padrao.jpeg")
     public abstract Cliente cadastrarClienteDtoParaCliente(CadastrarClienteDTO cadastrarClienteDTO);
     
-    public abstract Cliente alterarClienteDtoSetarAtributosEmCliente(AlterarClienteDTO alterarClienteDTO, @MappingTarget Cliente cliente);
+    @Mapping(target = "fotoPerfil", ignore = true)
+    public abstract Cliente alterarClienteDTOVerificarESetarAtributosEmCliente(AlterarClienteDTO alterarClienteDTO, @MappingTarget Cliente cliente);
     
 }

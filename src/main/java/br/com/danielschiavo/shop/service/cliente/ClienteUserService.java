@@ -1,8 +1,6 @@
 package br.com.danielschiavo.shop.service.cliente;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,7 +70,7 @@ public class ClienteUserService {
 	@Transactional
 	public String alterarClientePorIdToken(AlterarClienteDTO alterarClienteDTO) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		clienteMapper.alterarClienteDtoSetarAtributosEmCliente(alterarClienteDTO, cliente);
+		clienteMapper.alterarClienteDTOVerificarESetarAtributosEmCliente(alterarClienteDTO, cliente);
 		return "Alterado com sucesso!";
 	}
 	
