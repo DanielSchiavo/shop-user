@@ -38,8 +38,8 @@ public class CartaoUserController {
 	@Operation(summary = "Deleta o cartão que contém o id fornecido")
 	public ResponseEntity<?> deletarCartaoPorIdToken(@PathVariable Long idCartao) {
 		try {
-			cartaoService.deletarCartaoPorId(idCartao);
-			return ResponseEntity.noContent().build();
+			String respostaDeletarCartao = cartaoService.deletarCartaoPorId(idCartao);
+			return ResponseEntity.ok(respostaDeletarCartao);
 			
 		} catch (ValidacaoException e) {
 			HttpStatus status = HttpStatus.NOT_FOUND;

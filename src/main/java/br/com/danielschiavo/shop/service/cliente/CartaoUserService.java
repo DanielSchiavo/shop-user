@@ -35,12 +35,16 @@ public class CartaoUserService {
 	private CartaoMapper cartaoMapper;
 	
 	@Transactional
-	public void deletarCartaoPorId(Long id) {
+	public String deletarCartaoPorId(Long id) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
 		
-		Cartao cartao = pegarCartaoPorIdECliente(id, cliente);
+		boolean resultado = cartaoRepository.deleteByIdAndCliente(id, cliente);
 		
-		cartaoRepository.delete(cartao);
+		if (resultado == true) {
+			return "Cartão excluido com sucesso!";
+		} else {
+			throw new ValidacaoException("Cartão id número " + id + " não encontrado");
+		}
 	}
 	
 	public List<MostrarCartaoDTO> pegarCartoesClientePorIdToken() {
