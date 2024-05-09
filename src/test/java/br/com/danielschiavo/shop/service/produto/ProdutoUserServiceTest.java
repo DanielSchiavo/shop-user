@@ -18,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
+import br.com.danielschiavo.feign.produto.FileStorageProdutoService;
+import br.com.danielschiavo.mapper.ProdutoMapper;
 import br.com.danielschiavo.repository.produto.ProdutoRepository;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
