@@ -3,8 +3,10 @@ package br.com.danielschiavo.shop.service.produto;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,17 +20,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-import br.com.danielschiavo.feign.produto.FileStorageProdutoService;
-import br.com.danielschiavo.mapper.ProdutoMapper;
+import br.com.danielschiavo.feign.produto.FileStorageProdutoComumServiceClient;
+import br.com.danielschiavo.mapper.ProdutoComumMapper;
 import br.com.danielschiavo.repository.produto.ProdutoRepository;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.model.pedido.TipoEntrega;
 import br.com.danielschiavo.shop.model.produto.Produto;
 import br.com.danielschiavo.shop.model.produto.Produto.ProdutoBuilder;
+import br.com.danielschiavo.shop.model.produto.arquivosproduto.ArquivoProduto;
 import br.com.danielschiavo.shop.model.produto.dto.DetalharProdutoDTO;
 import br.com.danielschiavo.shop.model.produto.dto.MostrarProdutosDTO;
-import br.com.danielschiavo.shop.model.produto.subcategoria.SubCategoria;
+import br.com.danielschiavo.shop.model.produto.tipoentregaproduto.TipoEntregaProduto;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoUserServiceTest {
@@ -40,7 +43,7 @@ class ProdutoUserServiceTest {
 	private ProdutoRepository produtoRepository;
 	
 	@Mock
-	private FileStorageProdutoService fileStorageProdutoService;
+	private FileStorageProdutoComumServiceClient fileStorageProdutoService;
 	
 	@Mock
 	private ProdutoUtilidadeService produtoUtilidadeService;
@@ -49,36 +52,32 @@ class ProdutoUserServiceTest {
 	
 	@BeforeEach
 	public void beforeEach() {
-		ProdutoMapper produtoMapper = Mappers.getMapper(ProdutoMapper.class);
+		ProdutoComumMapper produtoMapper = Mappers.getMapper(ProdutoComumMapper.class);
 		produtoUserService.setProdutoMapper(produtoMapper);
 	}
 	
 	@Test
 	void listarProdutos() {
 		//ARRANGE
-		SubCategoria subCategoria = SubCategoria.builder().id(1L).build();
-		SubCategoria subCategoria2 = SubCategoria.builder().id(2L).build();
 		//Produto		
 		Produto produto = produtoBuilder.id(1L)
 										.nome("Mouse gamer")
 										.descricao("Descricao Mouse gamer")
-										.preco(200.00)
+										.preco(BigDecimal.valueOf(200.00))
 										.quantidade(100)
-										.tipoEntregaIdTipo(1L, TipoEntrega.CORREIOS)
-										.tipoEntregaIdTipo(2L, TipoEntrega.RETIRADA_NA_LOJA)
-										.tipoEntregaIdTipo(3L, TipoEntrega.ENTREGA_EXPRESSA)
-										.arquivoProdutoIdNomePosicao(1l, "Padrao.jpeg", (byte) 0)
-										.subCategoria(subCategoria)
-										.getProduto();
+										.tiposEntrega(Set.of(TipoEntregaProduto.builder().id(1L).tipoEntrega(TipoEntrega.CORREIOS).build(), TipoEntregaProduto.builder().id(2L).tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build(), TipoEntregaProduto.builder().id(3L).tipoEntrega(TipoEntrega.ENTREGA_EXPRESSA).build()))
+										.arquivosProduto(Set.of(ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 0).build()))
+										.subCategoriaId(1L)
+										.build();
 		Produto produto2 = produtoBuilder.id(2L)
 										 .nome("Sistema Digisat Administrador")
 										 .descricao("Descricao sistema")
-										 .preco(200.00)
+										 .preco(BigDecimal.valueOf(200.00))
 										 .quantidade(100)
-										 .tipoEntregaIdTipo(4L, TipoEntrega.ENTREGA_DIGITAL)
-										 .arquivoProdutoIdNomePosicao(2L, "Padrao.jpeg", (byte) 0)
-										 .subCategoria(subCategoria2)
-										 .getProduto();
+										 .tiposEntrega(Set.of(TipoEntregaProduto.builder().id(1L).tipoEntrega(TipoEntrega.ENTREGA_DIGITAL).build()))
+										 .arquivosProduto(Set.of(ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 0).build()))
+										 .subCategoriaId(2L)
+										 .build();
 		List<Produto> produtos = new ArrayList<>(List.of(produto, produto2));
 		
 		PageRequest pageable = PageRequest.of(0, 10);
@@ -109,20 +108,16 @@ class ProdutoUserServiceTest {
 	@Test
 	void detalharProdutoPorId() {
 		//ARRANGE
-		SubCategoria subCategoria = SubCategoria.builder().id(1L).build();
 		//Produto		
 		Produto produto = produtoBuilder.id(1L)
 										.nome("Mouse gamer")
 										.descricao("Descricao Mouse gamer")
-										.preco(200.00)
+										.preco(BigDecimal.valueOf(200.00))
 										.quantidade(100)
-										.tipoEntregaIdTipo(1L, TipoEntrega.CORREIOS)
-										.tipoEntregaIdTipo(2L, TipoEntrega.RETIRADA_NA_LOJA)
-										.tipoEntregaIdTipo(3L, TipoEntrega.ENTREGA_EXPRESSA)
-										.arquivoProdutoIdNomePosicao(1L, "Padrao.jpeg", (byte) 0)
-										.arquivoProdutoIdNomePosicao(2L, "Padrao.jpeg", (byte) 1)
-										.subCategoria(subCategoria)
-										.getProduto();
+										.tiposEntrega(Set.of(TipoEntregaProduto.builder().id(1L).tipoEntrega(TipoEntrega.CORREIOS).build(), TipoEntregaProduto.builder().id(2L).tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build(), TipoEntregaProduto.builder().id(3L).tipoEntrega(TipoEntrega.ENTREGA_EXPRESSA).build()))
+										.arquivosProduto(Set.of(ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 0).build()))
+										.subCategoriaId(1L)
+										.build();
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", "Bytes do arquivo Padrao.jpeg".getBytes());
 		ArquivoInfoDTO arquivoInfoDTO2 = new ArquivoInfoDTO("Padrao.jpeg", "Bytes do arquivo Padrao.jpeg".getBytes());
 		List<ArquivoInfoDTO> listaArquivosInfoDTO = new ArrayList<>(List.of(arquivoInfoDTO, arquivoInfoDTO2));
@@ -146,7 +141,5 @@ class ProdutoUserServiceTest {
 			Assertions.assertEquals(arquivoInfoDTO.nomeArquivo(), arquivo.nomeArquivo());
 			Assertions.assertArrayEquals(arquivoInfoDTO.bytesArquivo(), arquivo.bytesArquivo());
 		});
-		// SubCategoria
-		Assertions.assertEquals(produto.getSubCategoria().getId(), detalharProdutoDTO.getSubCategoria());
 	}
 }
