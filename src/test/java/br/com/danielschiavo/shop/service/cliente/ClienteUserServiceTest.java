@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import br.com.danielschiavo.feign.FileStoragePerfilServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.repository.cliente.ClienteRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
@@ -48,7 +49,7 @@ class ClienteUserServiceTest {
 	private ArgumentCaptor<Cliente> clienteCaptor;
 	
 	@Mock
-	private FileStorageServiceClient fileStorageServiceClient;
+	private FileStoragePerfilServiceClient fileStorageServiceClient;
 	
 	@Mock
 	private ClienteRepository clienteRepository;
