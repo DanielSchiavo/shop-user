@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import br.com.danielschiavo.feign.FileStoragePerfilServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.repository.cliente.ClienteRepository;
+import br.com.danielschiavo.shop.service.cliente.mapper.ClienteMapperImpl;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.Cliente.ClienteBuilder;
@@ -31,7 +32,6 @@ import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO.CadastrarClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
-import br.com.danielschiavo.shop.service.cliente.mapper.ClienteMapperImpl;
 
 @ExtendWith(MockitoExtension.class)
 class ClienteUserServiceTest {
