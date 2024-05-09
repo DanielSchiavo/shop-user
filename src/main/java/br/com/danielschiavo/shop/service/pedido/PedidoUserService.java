@@ -11,15 +11,15 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import br.com.danielschiavo.feign.CarrinhoServiceClient;
-import br.com.danielschiavo.feign.CartaoServiceClient;
-import br.com.danielschiavo.feign.EnderecoServiceClient;
-import br.com.danielschiavo.feign.pedido.FileStoragePedidoService;
+import br.com.danielschiavo.feign.CarrinhoComumServiceClient;
+import br.com.danielschiavo.feign.CartaoComumServiceClient;
+import br.com.danielschiavo.feign.EnderecoComumServiceClient;
+import br.com.danielschiavo.feign.pedido.FileStoragePedidoComumServiceClient;
 import br.com.danielschiavo.feign.pedido.RequestPedidoImagemProduto;
 import br.com.danielschiavo.feign.produto.ResponseProdutoPrimeiraImagemEAtivo;
-import br.com.danielschiavo.feign.produto.ProdutoServiceClient;
+import br.com.danielschiavo.feign.produto.ProdutoComumServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.PedidoMapper;
+import br.com.danielschiavo.mapper.PedidoComumMapper;
 import br.com.danielschiavo.repository.pedido.PedidoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
@@ -48,25 +48,25 @@ public class PedidoUserService {
 	private UsuarioAutenticadoService usuarioAutenticadoService;
 
 	@Autowired
-	private FileStoragePedidoService fileStoragePedidoService;
+	private FileStoragePedidoComumServiceClient fileStoragePedidoService;
 
 	@Autowired
-	private ProdutoServiceClient produtoServiceClient;
+	private ProdutoComumServiceClient produtoServiceClient;
 	
 	@Autowired
-	private EnderecoServiceClient enderecoServiceClient;
+	private EnderecoComumServiceClient enderecoServiceClient;
 	
 	@Autowired
-	private CartaoServiceClient cartaoServiceClient;
+	private CartaoComumServiceClient cartaoServiceClient;
 	
 	@Autowired
-	private CarrinhoServiceClient carrinhoServiceClient;
+	private CarrinhoComumServiceClient carrinhoServiceClient;
 	
 	@Autowired
 	private List<ValidadorCriarNovoPedido> validador;
 	
 	@Autowired
-	private PedidoMapper pedidoMapper;
+	private PedidoComumMapper pedidoMapper;
 	
 	private PedidoBuilder pedidoBuilder = Pedido.builder();
 	
