@@ -1,6 +1,5 @@
 package br.com.danielschiavo.shop.service.cliente;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,19 +35,12 @@ public class CartaoUserService {
 	private CartaoMapper cartaoMapper;
 	
 	@Transactional
-	public void deletarCartaoPorIdToken(Long id) {
+	public void deletarCartaoPorId(Long id) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
 		
-		Iterator<Cartao> iteratorCartao = cliente.getCartoes().iterator();
-		while (iteratorCartao.hasNext()) {
-			Cartao cartao = iteratorCartao.next();
-			if (cartao.getId() == id) {
-				iteratorCartao.remove();
-				cartaoRepository.delete(cartao);
-				return;
-			}
-		}
-		throw new ValidacaoException("Não existe um cartão de id número " + id + " para esse cliente");
+		Cartao cartao = pegarCartaoPorIdECliente(id, cliente);
+		
+		cartaoRepository.delete(cartao);
 	}
 	
 	public List<MostrarCartaoDTO> pegarCartoesClientePorIdToken() {
@@ -71,7 +63,7 @@ public class CartaoUserService {
 		
 		Cartao novoCartao = cartaoMapper.cadastrarCartaoDtoParaCartao(cartaoDTO, cliente);
 		
-		List<Cartao> cartoes = cliente.getCartoes();
+		List<Cartao> cartoes = cartaoRepository.findAllByCliente(cliente);
 		if (cartaoDTO.cartaoPadrao() == true && !cartoes.isEmpty()) {
 			cartoes.forEach(cartao -> {
 				if (cartao.getCartaoPadrao() == true) {
@@ -94,7 +86,7 @@ public class CartaoUserService {
 	@Transactional
 	public void alterarCartaoPadraoPorIdToken(Long id) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
-		List<Cartao> cartoes = cliente.getCartoes();
+		List<Cartao> cartoes = cartaoRepository.findAllByCliente(cliente);
 		
 		AtomicBoolean comoCartaoEstaDepoisDeSerAlterado = new AtomicBoolean();
 		AtomicBoolean foiAlterado = new AtomicBoolean(false);
@@ -133,7 +125,7 @@ public class CartaoUserService {
 //	------------------------------
 //	------------------------------
 
-	public Cartao verificarSeCartaoExistePorIdCartaoECliente(Long idCartao, Cliente cliente) {
+	public Cartao pegarCartaoPorIdECliente(Long idCartao, Cliente cliente) {
 		return cartaoRepository.findByIdAndCliente(idCartao, cliente).orElseThrow(() -> new ValidacaoException("Não existe o cartão de ID número " + idCartao + " para o cliente de ID número " + cliente.getId()));
 	}
 	
