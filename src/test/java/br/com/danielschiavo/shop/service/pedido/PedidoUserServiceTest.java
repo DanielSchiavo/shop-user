@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,13 +25,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import br.com.danielschiavo.JwtUtilTest;
-import br.com.danielschiavo.feign.CarrinhoServiceClient;
-import br.com.danielschiavo.feign.CartaoServiceClient;
-import br.com.danielschiavo.feign.EnderecoServiceClient;
-import br.com.danielschiavo.feign.pedido.FileStoragePedidoService;
+import br.com.danielschiavo.feign.CarrinhoComumServiceClient;
+import br.com.danielschiavo.feign.CartaoComumServiceClient;
+import br.com.danielschiavo.feign.EnderecoComumServiceClient;
+import br.com.danielschiavo.feign.pedido.FileStoragePedidoComumServiceClient;
 import br.com.danielschiavo.feign.pedido.RequestPedidoImagemProduto;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.mapper.PedidoMapperImpl;
+import br.com.danielschiavo.mapper.PedidoComumMapperImpl;
 import br.com.danielschiavo.repository.pedido.PedidoRepository;
 import br.com.danielschiavo.repository.produto.ProdutoRepository;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
@@ -60,8 +61,8 @@ import br.com.danielschiavo.shop.model.pedido.pagamento.Pagamento;
 import br.com.danielschiavo.shop.model.pedido.pagamento.StatusPagamento;
 import br.com.danielschiavo.shop.model.produto.Produto;
 import br.com.danielschiavo.shop.model.produto.Produto.ProdutoBuilder;
-import br.com.danielschiavo.shop.model.produto.categoria.Categoria;
-import br.com.danielschiavo.shop.model.produto.categoria.Categoria.CategoriaBuilder;
+import br.com.danielschiavo.shop.model.produto.arquivosproduto.ArquivoProduto;
+import br.com.danielschiavo.shop.model.produto.tipoentregaproduto.TipoEntregaProduto;
 import br.com.danielschiavo.shop.service.pedido.validacoes.ValidadorCriarNovoPedido;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,19 +81,19 @@ class PedidoUserServiceTest {
 	private PedidoRepository pedidoRepository;
 	
 	@Mock
-	private FileStoragePedidoService fileStoragePedidoService;
+	private FileStoragePedidoComumServiceClient fileStoragePedidoService;
 	
 	@Mock
 	private ProdutoRepository produtoRepository;
 	
 	@Mock
-	private CarrinhoServiceClient carrinhoServiceClient;
+	private CarrinhoComumServiceClient carrinhoServiceClient;
 	
 	@Mock
-	private EnderecoServiceClient enderecoServiceClient;
+	private EnderecoComumServiceClient enderecoServiceClient;
 	
 	@Mock
-	private CartaoServiceClient cartaoServiceClient;
+	private CartaoComumServiceClient cartaoServiceClient;
 	
 	@Mock
 	private ProdutoUtilidadeService produtoUtilidadeService;
@@ -116,13 +117,11 @@ class PedidoUserServiceTest {
 	
 	private ClienteBuilder clienteBuilder = Cliente.builder();
 	
-	private CategoriaBuilder categoriaBuilder = Categoria.builder();
-	
 	private String tokenUser = "Bearer ".concat(JwtUtilTest.generateTokenUser());
 	
     @BeforeEach
     void setUp() {
-    	PedidoMapperImpl pedidoMapper = new PedidoMapperImpl();
+    	PedidoComumMapperImpl pedidoMapper = new PedidoComumMapperImpl();
     	pedidoUserService.setPedidoMapper(pedidoMapper);
     }
 	
@@ -132,8 +131,21 @@ class PedidoUserServiceTest {
 		//Cliente
 		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").getCliente();
 		//Produto
-		Produto produto = produtoBuilder.id(1L).nome("Mouse gamer").descricao("Descricao Mouse gamer").preco(200.00).quantidade(100).arquivoProdutoIdNomePosicao(1l, "Padrao.jpeg", (byte) 0).getProduto();
-		Produto produto2 = produtoBuilder.id(2L).nome("Teclado gamer").descricao("Descricao Teclado gamer").preco(200.00).quantidade(100).arquivoProdutoIdNomePosicao(1l, "Padrao.jpeg", (byte) 0).getProduto();
+		Produto produto = produtoBuilder.id(1L)
+										.nome("Mouse gamer")
+										.descricao("Descricao Mouse gamer")
+										.preco(BigDecimal.valueOf(200.00))
+										.quantidade(100)
+										.arquivosProduto(Set.of(ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 0).build()))
+										.build();
+		
+		Produto produto2 = produtoBuilder.id(2L)
+										.nome("Teclado gamer")
+										.descricao("Descricao Teclado gamer")
+										.preco(BigDecimal.valueOf(200.00))
+										.quantidade(100)
+										.arquivosProduto(Set.of(ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 0).build()))
+										.build();
 		//Endereco
 		Endereco endereco = enderecoBuilder.cep("12345678").rua("Divinopolis").numero("15").complemento("Sem complemento").bairro("Bela vista").cidade("Cariacica").estado("ES").build();
 		//Pedido
@@ -212,30 +224,26 @@ class PedidoUserServiceTest {
 	void criarPedidoPorIdToken_CompraPeloBotaoComprarAgora() {
 		//ARRANGE
 		validadores.addAll(List.of(validador1, validador2));
-		//Categoria
-		Categoria categoria = categoriaBuilder
-						.categoria(1L, "Softwares")
-								.comSubCategoria(1L, "Sistema Administrativo")
-						.getCategoria();
 		//Produto
-		Produto produto = produtoBuilder
-				  .id(1L)
-			 	  .nome("Teclado RedDragon switch vermelho")
-				  .descricao("Teclado reddragon, switch vermelho, sem teclado numérico pt-br, com leds, teclas macro, switch óptico, teclas anti-desgaste")
-				  .preco(200.00)
-				  .quantidade(999)
-				  .ativo(true)
-				  .tipoEntregaIdTipo(1L, TipoEntrega.ENTREGA_DIGITAL)
-				  .arquivoProdutoIdNomePosicao(1L, "Padrao.jpeg", (byte) 0)
-				  .subCategoria(categoria.getSubCategorias().get(0))
-				  .getProduto();
+		ArquivoProduto arquivoProduto = ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 0).build();
+		Produto produto = produtoBuilder.id(1L)
+										.nome("Teclado RedDragon switch vermelho")
+										.descricao("Teclado reddragon, switch vermelho, sem teclado numérico pt-br, com leds, teclas macro, switch óptico, teclas anti-desgaste")
+										.preco(BigDecimal.valueOf(200.00))
+										.quantidade(999)
+										.tiposEntrega(Set.of(TipoEntregaProduto.builder().id(1L).tipoEntrega(TipoEntrega.ENTREGA_DIGITAL).build()))
+										.arquivosProduto(Set.of(arquivoProduto))
+										.subCategoriaId(1L)
+										.ativo(true)
+										.build();
+		
 		//When
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", "Qualquercoisa".getBytes());
 		when(produtoUtilidadeService.pegarProdutoPorIdEAtivoTrue(1L)).thenReturn(produto);
 		when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		when(usuarioAutenticadoService.getTokenComBearer()).thenReturn(tokenUser);
 		when(produtoUtilidadeService.pegarNomePrimeiraImagem(produto)).thenReturn(arquivoInfoDTO.nomeArquivo());
-		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new RequestPedidoImagemProduto(produto.getArquivosProduto().get(0).getNome(), produto.getId()))).thenReturn("Padrao.jpeg");
+		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new RequestPedidoImagemProduto(arquivoProduto.getNome(), produto.getId()))).thenReturn("Padrao.jpeg");
 		when(fileStoragePedidoService.pegarImagemPedido(any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
@@ -285,14 +293,30 @@ class PedidoUserServiceTest {
 		Cartao cartao = new Cartao(1L, "Santander", "1123444255591132", "Daniel schiavo rosseto", "03/25", true, TipoCartao.CREDITO, cliente);
 		//Endereco
 		Endereco endereco = new Endereco(1L, "12345621", "Divinopolis", "15", "Sem complemento", "Bela vista", "Cariacica", "ES", true, cliente);
-		//Categoria
-		Categoria categoria = categoriaBuilder
-						.categoria(1L, "Softwares")
-								.comSubCategoria(1L, "Sistema Administrativo")
-						.getCategoria();
 		//Produto
-		Produto produto = produtoBuilder.id(1L).nome("Mouse gamer").descricao("Descricao Mouse gamer").preco(200.00).quantidade(100).arquivoProdutoIdNomePosicao(1l, "Padrao.jpeg", (byte) 0).getProduto();
-		Produto produto2 = produtoBuilder.id(2L).nome("Teclado RedDragon switch vermelho").descricao("Teclado reddragon descricao").preco(200.00).quantidade(999).ativo(true).tipoEntregaIdTipo(null, TipoEntrega.RETIRADA_NA_LOJA).arquivoProdutoIdNomePosicao(null, "Padrao.jpeg", (byte) 0).subCategoria(categoria.getSubCategorias().get(0)).getProduto();
+		ArquivoProduto arquivoProduto = ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 0).build();
+		Produto produto2 = produtoBuilder.id(1L)
+										.nome("Teclado RedDragon switch vermelho")
+										.descricao("Teclado reddragon descricao")
+										.preco(BigDecimal.valueOf(200.00))
+										.quantidade(999)
+										.tiposEntrega(Set.of(TipoEntregaProduto.builder().id(1L).tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build()))
+										.arquivosProduto(Set.of(arquivoProduto))
+										.subCategoriaId(1L)
+										.ativo(true)
+										.build();
+		
+		Produto produto = produtoBuilder.id(1L)
+										.nome("Mouse gamer")
+										.descricao("Descricao Mouse gamer")
+										.preco(BigDecimal.valueOf(200.00))
+										.quantidade(100)
+										.tiposEntrega(Set.of(TipoEntregaProduto.builder().id(1L).tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build()))
+										.arquivosProduto(Set.of(arquivoProduto))
+										.subCategoriaId(1L)
+										.ativo(true)
+										.build();
+		
 		List<Produto> produtos = new ArrayList<>(List.of(produto, produto2));
 		//When
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", "Bytes arquivo padrao.jpeg".getBytes());
@@ -303,7 +327,7 @@ class PedidoUserServiceTest {
 		when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		when(usuarioAutenticadoService.getTokenComBearer()).thenReturn(tokenUser);
 		when(produtoUtilidadeService.pegarNomePrimeiraImagem(produto)).thenReturn(arquivoInfoDTO.nomeArquivo());
-		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new RequestPedidoImagemProduto(produto.getArquivosProduto().get(0).getNome(), produto.getId()))).thenReturn("Padrao.jpeg");
+		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new RequestPedidoImagemProduto(arquivoProduto.getNome(), produto.getId()))).thenReturn("Padrao.jpeg");
 		when(fileStoragePedidoService.pegarImagemPedido(any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
