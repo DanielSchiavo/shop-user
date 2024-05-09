@@ -65,7 +65,7 @@ class CartaoUserControllerTest {
 	@DisplayName("Deletar cartão por id token deve retornar http 204 quando token e idCartao válidos são enviados")
 	void deletarCartaoPorIdToken_TokenEIdCartaoValido_DeveRetornarOkNoContent() throws IOException, Exception {
 		//ARRANGE
-		doNothing().when(cartaoService).deletarCartaoPorIdToken(any());
+		doNothing().when(cartaoService).deletarCartaoPorId(any());
 		
 		//ACT
 		Long idCartao = 1L;
