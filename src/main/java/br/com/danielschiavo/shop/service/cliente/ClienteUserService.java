@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.danielschiavo.feign.FileStoragePerfilServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.repository.cliente.ClienteRepository;
 import br.com.danielschiavo.shop.model.MensagemErroDTO;
@@ -35,7 +36,7 @@ public class ClienteUserService {
 	private UsuarioAutenticadoService usuarioAutenticadoService;
 	
 	@Autowired
-	private FileStorageServiceClient fileStorageServiceClient;
+	private FileStoragePerfilServiceClient fileStorageServiceClient;
 
 	@Transactional
 	public void deletarFotoPerfilPorIdToken() throws IOException {
