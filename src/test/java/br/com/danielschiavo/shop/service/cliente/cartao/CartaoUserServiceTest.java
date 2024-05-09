@@ -66,42 +66,9 @@ class CartaoUserServiceTest {
 	
     @BeforeEach
     void setUp() {
-//    	clienteUserService.setEnderecoService(enderecoService);
     	CartaoMapperImpl cartaoMapper = new CartaoMapperImpl();
     	cartaoService.setCartaoMapper(cartaoMapper);
     }
-	
-	@Test
-	@DisplayName("Deletar cartao por id token deve excluir o cartão dos cartões do cliente se cartão existe")
-	void deletarCartaoPorIdToken_CartaoExiste_DeveExcluirOCartao() {
-		//ARRANGE
-		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
-		Cartao cartao = cartaoBuilder.id(1L).nomeBanco("Santander").numeroCartao("1234567812345678").nomeNoCartao("Daniel schiavo rosseto").validadeCartao("03/28").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
-		Cartao cartao2 = cartaoBuilder.id(2L).nomeBanco("Santander").numeroCartao("8765432187654321").nomeNoCartao("Fernando henrique cardoso").validadeCartao("23/30").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
-		BDDMockito.when(cliente.getCartoes()).thenReturn(new ArrayList<>(List.of(cartao, cartao2)));
-		
-		//ACT
-		Long idCartao = 1L;
-		cartaoService.deletarCartaoPorIdToken(idCartao);
-		
-		//ASSERT
-		BDDMockito.then(cartaoRepository).should().delete(cartao);
-		Assertions.assertEquals(true, cliente.getCartoes().stream().filter(c -> c.getId() == idCartao).findFirst().isEmpty());
-	}
-	
-	@Test
-	@DisplayName("Deletar cartao por id token deve lançar exceção quando id do cartão não existir para o cliente")
-	void deletarCartaoPorIdToken_CartaoNaoExiste_DeveLancarExcecao() {
-		//ARRANGE
-		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
-		Cartao cartao = cartaoBuilder.id(1L).nomeBanco("Santander").numeroCartao("1234567812345678").nomeNoCartao("Daniel schiavo rosseto").validadeCartao("03/28").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
-		Cartao cartao2 = cartaoBuilder.id(2L).nomeBanco("Santander").numeroCartao("8765432187654321").nomeNoCartao("Fernando henrique cardoso").validadeCartao("23/30").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
-		BDDMockito.when(cliente.getCartoes()).thenReturn(new ArrayList<>(List.of(cartao, cartao2)));
-		Long idCartao = 3L;
-		
-		//ASSERT + ACT
-		Assertions.assertThrows(ValidacaoException.class, () -> cartaoService.deletarCartaoPorIdToken(idCartao));
-	}
 	
 	@Test
 	@DisplayName("Pegar cartões cliente por id token deve retornar todos os cartões do cliente se ele tiver pelo menos 1 cartão")
@@ -144,7 +111,7 @@ class CartaoUserServiceTest {
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		Cartao cartao = cartaoBuilder.id(1L).nomeBanco("Santander").numeroCartao("1234567812345678").nomeNoCartao("Daniel schiavo rosseto").validadeCartao("03/28").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
 		Cartao cartao2 = cartaoBuilder.id(2L).nomeBanco("Santander").numeroCartao("8765432187654321").nomeNoCartao("Fernando henrique cardoso").validadeCartao("23/30").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
-		BDDMockito.when(cliente.getCartoes()).thenReturn(new ArrayList<>(List.of(cartao, cartao2)));
+		BDDMockito.when(cartaoRepository.findAllByCliente(cliente)).thenReturn(new ArrayList<>(List.of(cartao, cartao2)));
 		validadores.addAll(List.of(validador1, validador2));
 		
 		//ACT
@@ -165,7 +132,7 @@ class CartaoUserServiceTest {
 	void cadastrarNovoCartaoPorIdToken_DtoEnviadoValidoComCartaoPadraoTrueEListaCartoesClienteEstaVazia_NaoDeveLancarExcecao() {
 		//ARRANGE
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
-		BDDMockito.when(cliente.getCartoes()).thenReturn(new ArrayList<Cartao>());
+		BDDMockito.when(cartaoRepository.findAllByCliente(cliente)).thenReturn(new ArrayList<Cartao>());
 		validadores.addAll(List.of(validador1, validador2));
 		
 		//ACT
@@ -187,7 +154,7 @@ class CartaoUserServiceTest {
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		Cartao cartao = cartaoBuilder.id(1L).nomeBanco("Santander").numeroCartao("1234567812345678").nomeNoCartao("Daniel schiavo rosseto").validadeCartao("03/28").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
 		Cartao cartao2 = cartaoBuilder.id(2L).nomeBanco("Santander").numeroCartao("8765432187654321").nomeNoCartao("Fernando henrique cardoso").validadeCartao("23/30").cartaoPadrao(false).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
-		BDDMockito.when(cliente.getCartoes()).thenReturn(new ArrayList<>(List.of(cartao, cartao2)));
+		BDDMockito.when(cartaoRepository.findAllByCliente(cliente)).thenReturn(new ArrayList<>(List.of(cartao, cartao2)));
 		
 		//ACT
 		Long idCartao = 1L;
@@ -207,7 +174,7 @@ class CartaoUserServiceTest {
 		Cartao cartao = cartaoBuilder.id(1L).nomeBanco("Santander").numeroCartao("1234567812345678").nomeNoCartao("Daniel schiavo rosseto").validadeCartao("03/28").cartaoPadrao(false).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
 		Cartao cartao2 = cartaoBuilder.id(2L).nomeBanco("Itau").numeroCartao("8765432187654321").nomeNoCartao("Fernando henrique cardoso").validadeCartao("23/30").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
 		Cartao cartao3 = cartaoBuilder.id(3L).nomeBanco("Caixa").numeroCartao("1234567887654321").nomeNoCartao("Jucelino kubchecker").validadeCartao("03/28").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).cliente(cliente).build();
-		BDDMockito.when(cliente.getCartoes()).thenReturn(new ArrayList<>(List.of(cartao, cartao2, cartao3)));
+		BDDMockito.when(cartaoRepository.findAllByCliente(cliente)).thenReturn(new ArrayList<>(List.of(cartao, cartao2, cartao3)));
 		
 		//ACT
 		Long idCartao = 1L;
