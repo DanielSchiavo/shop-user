@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.danielschiavo.feign.FileStoragePerfilServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
+import br.com.danielschiavo.mapper.ClienteComumMapper;
 import br.com.danielschiavo.repository.cliente.ClienteRepository;
 import br.com.danielschiavo.shop.model.MensagemErroDTO;
 import br.com.danielschiavo.shop.model.ValidacaoException;
@@ -29,6 +30,9 @@ public class ClienteUserService {
 	
 	@Autowired
 	private ClienteMapper clienteMapper;
+	
+	@Autowired
+	private ClienteComumMapper clienteComumMapper;
 	
 	@Autowired
 	private UsuarioAutenticadoService usuarioAutenticadoService;
@@ -56,7 +60,7 @@ public class ClienteUserService {
 	public MostrarClienteDTO detalharClientePorIdToken() {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
 		ArquivoInfoDTO arquivoInfoDTO = fileStorageServiceClient.getFotoPerfil(cliente.getFotoPerfil());
-		return clienteMapper.clienteParaMostrarClienteDTO(cliente, arquivoInfoDTO);
+		return clienteComumMapper.clienteParaMostrarClienteDTO(cliente, arquivoInfoDTO);
 	}
 	
 	@Transactional
