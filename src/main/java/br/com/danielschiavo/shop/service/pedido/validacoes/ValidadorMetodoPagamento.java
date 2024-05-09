@@ -30,7 +30,7 @@ public class ValidadorMetodoPagamento implements ValidadorCriarNovoPedido {
 		}
 		
 		if (idCartao != null) {
-			Cartao cartao = cartaoService.verificarSeCartaoExistePorIdCartaoECliente(idCartao, cliente);
+			Cartao cartao = cartaoService.pegarCartaoPorIdECliente(idCartao, cliente);
 			if (!metodoPagamentoDTO.toString().endsWith(cartao.getTipoCartao().toString())) {
 				throw new ValidacaoException("O cartão cadastrado de id número " + cartao.getId() + ", foi cadastrado como um cartão de " + cartao.getTipoCartao().toString() + ", não condiz com o método de pagamento fornecido, que é: " + metodoPagamentoDTO.toString());
 			}
