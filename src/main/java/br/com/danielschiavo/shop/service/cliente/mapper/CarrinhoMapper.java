@@ -9,7 +9,7 @@ import br.com.danielschiavo.shop.model.cliente.carrinho.MostrarCarrinhoClienteDT
 @Mapper(componentModel = "spring")
 public abstract class CarrinhoMapper {
 
-	@Mapping(target = "itemsCarrinho", ignore = true)
+	@Mapping(target = "itemsCarrinho", source = "itemsCarrinho")
 	@Mapping(target = "valorTotal", ignore = true) 
 	public abstract MostrarCarrinhoClienteDTO carrinhoParaMostrarCarrinhoClienteDTO(Carrinho carrinho);
 	

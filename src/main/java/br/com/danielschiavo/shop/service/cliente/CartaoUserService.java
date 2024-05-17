@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.repository.cliente.CartaoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.cartao.CadastrarCartaoDTO;
 import br.com.danielschiavo.shop.model.cliente.cartao.Cartao;
 import br.com.danielschiavo.shop.model.cliente.cartao.MostrarCartaoDTO;
+import br.com.danielschiavo.shop.repository.cliente.CartaoRepository;
 import br.com.danielschiavo.shop.service.cliente.mapper.CartaoMapper;
 import br.com.danielschiavo.shop.service.cliente.validacoes.ValidadorCadastrarNovoCartao;
 import lombok.Setter;
@@ -38,9 +38,9 @@ public class CartaoUserService {
 	public String deletarCartaoPorId(Long id) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
 		
-		boolean resultado = cartaoRepository.deleteByIdAndCliente(id, cliente);
+		Integer registrosExcluidos = cartaoRepository.deleteByIdAndCliente(id, cliente);
 		
-		if (resultado == true) {
+		if (registrosExcluidos > 0) {
 			return "Cartão excluido com sucesso!";
 		} else {
 			throw new ValidacaoException("Cartão id número " + id + " não encontrado");
@@ -58,9 +58,17 @@ public class CartaoUserService {
 
 		return cartaoMapper.listaCartaoParaListaMostrarCartaoDto(cartoes);
 	}
+	
+	public MostrarCartaoDTO pegarCartao(Long cartaoId) {
+		Cliente cliente = usuarioAutenticadoService.getCliente();
+		
+		Cartao cartao = cartaoRepository.findByIdAndCliente(cartaoId, cliente).orElseThrow(() -> {throw new ValidacaoException("Cliente não tem cartão com o ID " + cartaoId);});
+		
+		return cartaoMapper.cartaoParaMostrarCartaoDto(cartao);
+	}
 
 	@Transactional
-	public MostrarCartaoDTO cadastrarNovoCartaoPorIdToken(CadastrarCartaoDTO cartaoDTO) {
+	public String cadastrarNovoCartaoPorIdToken(CadastrarCartaoDTO cartaoDTO) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
 
 		validadores.forEach(v -> v.validar(cartaoDTO, cliente));
@@ -84,16 +92,18 @@ public class CartaoUserService {
 		novoCartao.setNomeBanco("Falta implementar API banco");
 		cartaoRepository.save(novoCartao);
 		
-		return cartaoMapper.cartaoParaMostrarCartaoDto(novoCartao);
+		return "Cartão cadastrado com sucesso!";
 	}
 	
 	@Transactional
-	public void alterarCartaoPadraoPorIdToken(Long id) {
+	public String alterarCartaoPadraoPorIdToken(Long id) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
 		List<Cartao> cartoes = cartaoRepository.findAllByCliente(cliente);
 		
 		AtomicBoolean comoCartaoEstaDepoisDeSerAlterado = new AtomicBoolean();
 		AtomicBoolean foiAlterado = new AtomicBoolean(false);
+		//Primeiro itera na lista e pega o cartão com o id recebido no parametro desse metodo
+		//Se o cartão encontrado for cartaoPadrao = false, transforme em cartaoPadrao = true, faça o mesmo se for o contrário também
 		cartoes.forEach(cartao -> {
 			if (cartao.getId() == id) {
 				if (cartao.getCartaoPadrao() == false) {
@@ -104,22 +114,25 @@ public class CartaoUserService {
 					cartao.setCartaoPadrao(false);
 					foiAlterado.set(true);
 				}
-				cartaoRepository.save(cartao);
 			}
 		});
 		
-		if (comoCartaoEstaDepoisDeSerAlterado.get() != false) {
+		//Se o cliente alterou o cartão recebido no parametro desse metodo para cartaoPadrao = true, então defina todos os outros cartões como cartaoPadrao = false
+		if (comoCartaoEstaDepoisDeSerAlterado.get() == true) {
 			cartoes.forEach(cartao -> {
 				if (cartao.getId() != id && cartao.getCartaoPadrao() == true) {
 					cartao.setCartaoPadrao(false);
-					cartaoRepository.save(cartao);
 				}
 			});
 		}
 		
+		//Se nenhum cartão foi alterado é porque o cliente não possui um cartão com esse ID
 		if (foiAlterado.get() == false) {
 			throw new ValidacaoException("ID do cartão de número: " + id + " não existe para esse cliente");
 		}
+		
+		cartaoRepository.saveAll(cartoes);
+		return "Cartão ID " + id + " alterado para cartão padrão " + comoCartaoEstaDepoisDeSerAlterado + " com sucesso";
 	}
 	
 	
@@ -132,5 +145,7 @@ public class CartaoUserService {
 	public Cartao pegarCartaoPorIdECliente(Long idCartao, Cliente cliente) {
 		return cartaoRepository.findByIdAndCliente(idCartao, cliente).orElseThrow(() -> new ValidacaoException("Não existe o cartão de ID número " + idCartao + " para o cliente de ID número " + cliente.getId()));
 	}
+
+
 	
 }

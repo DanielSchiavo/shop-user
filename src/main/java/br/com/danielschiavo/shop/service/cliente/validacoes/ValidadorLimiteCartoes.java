@@ -5,11 +5,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.com.danielschiavo.repository.cliente.CartaoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.cartao.CadastrarCartaoDTO;
 import br.com.danielschiavo.shop.model.cliente.cartao.Cartao;
+import br.com.danielschiavo.shop.repository.cliente.CartaoRepository;
 
 @Service
 public class ValidadorLimiteCartoes implements ValidadorCadastrarNovoCartao {

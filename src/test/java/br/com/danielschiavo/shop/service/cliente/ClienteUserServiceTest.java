@@ -20,8 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.danielschiavo.feign.FileStoragePerfilComumServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.repository.cliente.ClienteRepository;
-import br.com.danielschiavo.shop.service.cliente.mapper.ClienteMapperImpl;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.Cliente.ClienteBuilder;
@@ -32,6 +30,8 @@ import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO;
 import br.com.danielschiavo.shop.model.cliente.dto.CadastrarClienteDTO.CadastrarClienteDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.dto.MostrarClienteDTO;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
+import br.com.danielschiavo.shop.repository.cliente.ClienteRepository;
+import br.com.danielschiavo.shop.service.cliente.mapper.ClienteMapperImpl;
 
 @ExtendWith(MockitoExtension.class)
 class ClienteUserServiceTest {
@@ -81,7 +81,7 @@ class ClienteUserServiceTest {
 	@DisplayName("Deletar foto perfil por id token deve remover a foto perfil do cliente e definir a foto do cliente como Padrao.jpeg")
 	void deletarFotoPerfilPorIdToken_ClienteNaoTemFotoPadrao_NaoDeveLancarExcecao() throws IOException {
 		//ARRANGE
-		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").getCliente();
+		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").build();
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		
 		//ACT
@@ -96,10 +96,10 @@ class ClienteUserServiceTest {
 	@DisplayName("Detalhar cliente por id token pagina inicial deve retornar dados normalmente quando usuario logado no sistema")
 	void detalharClientePorIdTokenPaginaInicial() {
 		//ARRANGE
-		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Padrao.jpeg").getCliente();
+		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Padrao.jpeg").build();
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("outrafoto.jpeg", "Bytesimagemdummy".getBytes());
-		BDDMockito.when(fileStorageServiceClient.getFotoPerfil(any())).thenReturn(arquivoInfoDTO);
+		BDDMockito.when(fileStorageServiceClient.getFotoPerfil(any(), any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		MostrarClientePaginaInicialDTO mostrarClientePaginaInicialDTO = clienteUserService.detalharClientePorIdTokenPaginaInicial();
@@ -117,10 +117,10 @@ class ClienteUserServiceTest {
 		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva")
 									.dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now())
 									.email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653")
-									.fotoPerfil("Padrao.jpeg").getCliente();
+									.fotoPerfil("Padrao.jpeg").build();
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("outrafoto.jpeg", "Bytesimagemdummy".getBytes());
-		BDDMockito.when(fileStorageServiceClient.getFotoPerfil(any())).thenReturn(arquivoInfoDTO);
+		BDDMockito.when(fileStorageServiceClient.getFotoPerfil(any(), any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		MostrarClienteDTO mostrarClienteDTO = clienteUserService.detalharClientePorIdToken();
@@ -164,10 +164,10 @@ class ClienteUserServiceTest {
 	@DisplayName("Alterar cliente por id token deve funcionar normalmente se dto enviado está correto")
 	void alterarClientePorIdToken() {
 		//ARRANGE
-		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").getCliente();
+		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").build();
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("outrafoto.jpeg", "Bytesimagemdummy".getBytes());
-		BDDMockito.when(fileStorageServiceClient.getFotoPerfil(any())).thenReturn(arquivoInfoDTO);
+		BDDMockito.when(fileStorageServiceClient.getFotoPerfil(any(), any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		AlterarClienteDTO alterarClienteDTO = alterarClienteDTOBuilder.cpf("12345612321").nome("Silvana").sobrenome("Silva Santana").dataNascimento(LocalDate.of(1999, 3, 3)).email("silvanasantana@gmail.com").senha("654321").celular("27998321332").build();
@@ -183,7 +183,7 @@ class ClienteUserServiceTest {
 		//ARRANGE
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Novaimagem.jpeg", "Bytesimagemdummy".getBytes());
-		BDDMockito.when(fileStorageServiceClient.getFotoPerfil(any())).thenReturn(arquivoInfoDTO);
+		BDDMockito.when(fileStorageServiceClient.getFotoPerfil(any(), any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		AlterarFotoPerfilDTO alterarFotoPerfilDTO = new AlterarFotoPerfilDTO("Novaimagem.jpeg");

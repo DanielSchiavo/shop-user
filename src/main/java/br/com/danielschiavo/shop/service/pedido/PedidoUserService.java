@@ -15,24 +15,25 @@ import br.com.danielschiavo.feign.CarrinhoComumServiceClient;
 import br.com.danielschiavo.feign.CartaoComumServiceClient;
 import br.com.danielschiavo.feign.EnderecoComumServiceClient;
 import br.com.danielschiavo.feign.pedido.FileStoragePedidoComumServiceClient;
-import br.com.danielschiavo.feign.pedido.RequestPedidoImagemProduto;
-import br.com.danielschiavo.feign.produto.ResponseProdutoPrimeiraImagemEAtivo;
 import br.com.danielschiavo.feign.produto.ProdutoComumServiceClient;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.mapper.PedidoComumMapper;
-import br.com.danielschiavo.repository.pedido.PedidoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.cartao.Cartao;
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco;
+import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
+import br.com.danielschiavo.shop.model.filestorage.PersistirOuRecuperarImagemPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.Pedido;
 import br.com.danielschiavo.shop.model.pedido.Pedido.PedidoBuilder;
 import br.com.danielschiavo.shop.model.pedido.dto.CriarPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.dto.MostrarPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.dto.MostrarProdutoDoPedidoDTO;
+import br.com.danielschiavo.shop.model.pedido.dto.ProdutoPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.itempedido.ItemPedido;
 import br.com.danielschiavo.shop.model.pedido.itempedido.ItemPedido.ItemPedidoBuilder;
 import br.com.danielschiavo.shop.model.pedido.pagamento.MetodoPagamento;
+import br.com.danielschiavo.shop.repository.pedido.PedidoRepository;
 import br.com.danielschiavo.shop.service.pedido.validacoes.ValidadorCriarNovoPedido;
 import jakarta.transaction.Transactional;
 import lombok.Setter;
@@ -74,11 +75,12 @@ public class PedidoUserService {
 
 	public Page<MostrarPedidoDTO> pegarPedidosClientePorIdToken(Pageable pageable) {
 		Cliente cliente = usuarioAutenticadoService.getCliente();
+		String tokenComBearer = usuarioAutenticadoService.getTokenComBearer();
 		Page<Pedido> pagePedidos = pedidoRepository.findAllByCliente(cliente, pageable);
 
 		List<MostrarPedidoDTO> list = new ArrayList<>();
 		for (Pedido pedido : pagePedidos) {
-			List<MostrarProdutoDoPedidoDTO> listaMostrarProdutoDoPedidoDTO = pedidoMapper.pedidoParaMostrarProdutoDoPedidoDTO(pedido, fileStoragePedidoService);
+			List<MostrarProdutoDoPedidoDTO> listaMostrarProdutoDoPedidoDTO = pedidoMapper.pedidoParaMostrarProdutoDoPedidoDTO(pedido, fileStoragePedidoService, tokenComBearer);
 
 			var mostrarPedidoDTO = new MostrarPedidoDTO(pedido, listaMostrarProdutoDoPedidoDTO);
 			list.add(mostrarPedidoDTO);
@@ -105,7 +107,7 @@ public class PedidoUserService {
 		
 		pedidoRepository.save(pedido);
 		
-		List<MostrarProdutoDoPedidoDTO> listaMostrarProdutoDoPedidoDTO = pedidoMapper.pedidoParaMostrarProdutoDoPedidoDTO(pedido, fileStoragePedidoService);
+		List<MostrarProdutoDoPedidoDTO> listaMostrarProdutoDoPedidoDTO = pedidoMapper.pedidoParaMostrarProdutoDoPedidoDTO(pedido, fileStoragePedidoService, tokenComBearer);
 		return new MostrarPedidoDTO(pedido, listaMostrarProdutoDoPedidoDTO);
 	}
 	
@@ -121,7 +123,7 @@ public class PedidoUserService {
 		PedidoBuilder pedidoBuilder = this.pedidoBuilder.cliente(cliente);
 		criarESetarPagamento(pedidoDTO, pedidoBuilder, tokenComBearer);
 		criarESetarEntrega(pedidoDTO, pedidoBuilder, tokenComBearer);
-		criarESetarItemsPedido(pedidoDTO, pedidoBuilder);
+		criarESetarItemsPedido(pedidoDTO, pedidoBuilder, tokenComBearer);
 		return pedidoBuilder.getPedido();
 	}
 
@@ -136,9 +138,9 @@ public class PedidoUserService {
 		return pedidoBuilder;
 	}
 
-	private void criarESetarItemsPedido(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder) {
+	private void criarESetarItemsPedido(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder, String tokenComBearer) {
 		List<Long> produtosId = pedidoDTO.items().stream().map(item -> item.idProduto()).collect(Collectors.toList());
-		List<ResponseProdutoPrimeiraImagemEAtivo> listaDadosProdutos = produtoServiceClient.pegarPrimeiraImagemEVerificarSeEstaAtivo(produtosId);
+		List<ProdutoPedidoDTO> listaDadosProdutos = produtoServiceClient.pegarPrimeiraImagemEVerificarSeEstaAtivo(produtosId);
 		
 		listaDadosProdutos.forEach(produto -> {
 			if (produto.ativo() == null || produto.primeiraImagem() == null) {
@@ -147,14 +149,14 @@ public class PedidoUserService {
 			if (produto.ativo() == false) {
 				throw new ValidacaoException("Não foi possivel prosseguir com o pedido porque o produto de id número " + produto.produtoId() + " não está ativo");
 			}
-			String nomeImagemPedido = fileStoragePedidoService.persistirOuRecuperarImagemPedido(new RequestPedidoImagemProduto(produto.primeiraImagem(), produto.produtoId()));
+			ArquivoInfoDTO nomeImagemPedido = fileStoragePedidoService.persistirOuRecuperarImagemPedido(new PersistirOuRecuperarImagemPedidoDTO(produto.primeiraImagem(), produto.produtoId()), tokenComBearer);
 			
 			Integer quantidade = pedidoDTO.items().stream().filter(item -> item.idProduto() == produto.produtoId()).findFirst().get().quantidade();
 			
 			ItemPedido itemPedido = itemPedidoBuilder.preco(produto.preco())
 													 .quantidade(quantidade)
 													 .nomeProduto(produto.nome())
-													 .primeiraImagem(nomeImagemPedido)
+													 .primeiraImagem(nomeImagemPedido.nomeArquivo())
 													 .subTotal(produto.preco().multiply(BigDecimal.valueOf(quantidade)))
 													 .produtoId(produto.produtoId()).build();
 			pedidoBuilder.comItemPedido(itemPedido);

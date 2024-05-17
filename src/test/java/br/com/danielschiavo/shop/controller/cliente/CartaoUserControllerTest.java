@@ -124,8 +124,8 @@ class CartaoUserControllerTest {
 	@DisplayName("Cadastrar novo cartão por id token deve retornar http 200 quando token e dto estão validos")
 	void cadastrarNovoCartaoPorIdToken_ClienteValidoComEndereco_DeveRetornarCreated() throws IOException, Exception {
 		//ARRANGE
-		MostrarCartaoDTO mostrarCartaoDTO = mostrarCartaoDtoBuilder.id(1L).nomeBanco("SANTANDER").numeroCartao("1234567812345678").tipoCartao(TipoCartao.CREDITO).cartaoPadrao(true).build();
-		when(cartaoService.cadastrarNovoCartaoPorIdToken(any())).thenReturn(mostrarCartaoDTO);
+		String respostaCadastrarCartao = "Cartão cadastrado com sucesso";
+		when(cartaoService.cadastrarNovoCartaoPorIdToken(any())).thenReturn(respostaCadastrarCartao);
 		
 		//ACT
 		CadastrarCartaoDTO cadastrarCartaoDTO = cadastrarCartaoDtoBuilder.validadeCartao("03/29").numeroCartao("1234567812345678").nomeNoCartao("Jucelino Kubchecker").cartaoPadrao(true).tipoCartao(TipoCartao.CREDITO).build();
@@ -137,8 +137,7 @@ class CartaoUserControllerTest {
 		
 		//ASSERT
 		assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
-        var jsonEsperado = mostrarCartaoDTOJson.write(mostrarCartaoDTO).getJson();
-        assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
+        assertThat(response.getContentAsString()).matches(respostaCadastrarCartao);
 	}
 	
 	@Test

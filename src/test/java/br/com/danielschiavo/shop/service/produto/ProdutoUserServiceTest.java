@@ -22,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 
 import br.com.danielschiavo.feign.produto.FileStorageProdutoComumServiceClient;
 import br.com.danielschiavo.mapper.ProdutoComumMapper;
-import br.com.danielschiavo.repository.produto.ProdutoRepository;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.model.pedido.TipoEntrega;
@@ -32,6 +31,7 @@ import br.com.danielschiavo.shop.model.produto.arquivosproduto.ArquivoProduto;
 import br.com.danielschiavo.shop.model.produto.dto.DetalharProdutoDTO;
 import br.com.danielschiavo.shop.model.produto.dto.MostrarProdutosDTO;
 import br.com.danielschiavo.shop.model.produto.tipoentregaproduto.TipoEntregaProduto;
+import br.com.danielschiavo.shop.repository.produto.ProdutoRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoUserServiceTest {

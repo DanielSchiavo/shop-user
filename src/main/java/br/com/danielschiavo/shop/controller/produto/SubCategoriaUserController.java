@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/shop")
+@RequestMapping
 @Tag(name = "Sub Categorias - User", description = "Todos endpoints relacionados com as subcategorias, de uso publico")
 public class SubCategoriaUserController {
 	

@@ -20,7 +20,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.repository.cliente.CarrinhoRepository;
 import br.com.danielschiavo.service.cliente.CarrinhoUtilidadeService;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
@@ -31,6 +30,7 @@ import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.AdicionarIt
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.AdicionarItemCarrinhoDTO.AdicionarItemCarrinhoDTOBuilder;
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.ItemCarrinho;
 import br.com.danielschiavo.shop.model.cliente.carrinho.itemcarrinho.ItemCarrinho.ItemCarrinhoBuilder;
+import br.com.danielschiavo.shop.repository.cliente.CarrinhoRepository;
 import br.com.danielschiavo.shop.service.cliente.mapper.CarrinhoMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,8 +85,8 @@ class CarrinhoUserServiceTest {
 		BDDMockito.when(carrinho.getItemsCarrinho()).thenReturn(listaItemCarrinho);
 		
 		//ACT
-		Long idProduto = 1L;
-		carrinhoUserService.deletarProdutoNoCarrinhoPorIdToken(idProduto);
+		List<Long> produtosId = new ArrayList<>(List.of(3L));
+		carrinhoUserService.deletarProdutoNoCarrinhoPorIdToken(produtosId);
 		
 		//ASSERT
 		BDDMockito.then(carrinhoRepository).should().save(carrinho);
@@ -102,10 +102,10 @@ class CarrinhoUserServiceTest {
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		BDDMockito.when(carrinhoUtilidadeService.pegarCarrinho(cliente)).thenReturn(carrinho);
 		BDDMockito.when(carrinho.getItemsCarrinho()).thenReturn(listaItemCarrinho);
-		Long idProduto = 3L;
+		List<Long> produtosId = new ArrayList<>(List.of(3L));
 		
 		//ASSERT + ACT
-		Assertions.assertThrows(ValidacaoException.class, () -> carrinhoUserService.deletarProdutoNoCarrinhoPorIdToken(idProduto));
+		Assertions.assertThrows(ValidacaoException.class, () -> carrinhoUserService.deletarProdutoNoCarrinhoPorIdToken(produtosId));
 	}
 	
 	@Test
@@ -125,7 +125,7 @@ class CarrinhoUserServiceTest {
 		System.out.println(mostrarCarrinhoClienteDTO);
 		
 		//ASSERT
-		Assertions.assertEquals(0, mostrarCarrinhoClienteDTO.getId());
+		Assertions.assertEquals(0, mostrarCarrinhoClienteDTO.getClienteId());
 		Assertions.assertEquals(BigDecimal.valueOf(500.00), mostrarCarrinhoClienteDTO.getValorTotal());
 		Assertions.assertEquals(listaItemCarrinho.size(), mostrarCarrinhoClienteDTO.getItemsCarrinho().size());
 	}

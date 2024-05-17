@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/shop")
+@RequestMapping
 @SecurityRequirement(name = "bearer-key")
 @Tag(name = "Pedido - User", description = "Todos endpoints relacionados com os pedidos do cliente, que o próprio poderá utilizar")
 public class PedidoUserController {
@@ -37,8 +37,13 @@ public class PedidoUserController {
 	@PostMapping("/cliente/pedido")
 	@Operation(summary = "Cria um pedido em nome do cliente autenticado que está no token")
 	public ResponseEntity<?> criarPedidoPorIdToken(@RequestBody @Valid CriarPedidoDTO pedidoDTO) {
-		MostrarPedidoDTO mostrarPedidoDTO = pedidoService.criarPedidoPorIdToken(pedidoDTO);
+		try {
+			MostrarPedidoDTO mostrarPedidoDTO = pedidoService.criarPedidoPorIdToken(pedidoDTO);
+			return ResponseEntity.ok(mostrarPedidoDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.badRequest().body(e.getCause().getMessage());
+		}
 		
-		return ResponseEntity.ok(mostrarPedidoDTO);
 	}	
 }

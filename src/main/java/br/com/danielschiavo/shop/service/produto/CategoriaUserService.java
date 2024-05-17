@@ -8,10 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import br.com.danielschiavo.repository.produto.CategoriaRepository;
 import br.com.danielschiavo.shop.model.produto.categoria.Categoria;
 import br.com.danielschiavo.shop.model.produto.categoria.MostrarCategoriaComTodasSubCategoriaDTO;
 import br.com.danielschiavo.shop.model.produto.subcategoria.MostrarSubCategoriaDTO;
+import br.com.danielschiavo.shop.repository.produto.CategoriaRepository;
 
 @Service
 public class CategoriaUserService {

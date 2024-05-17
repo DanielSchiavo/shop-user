@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.repository.cliente.EnderecoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.Cliente.ClienteBuilder;
@@ -31,6 +30,7 @@ import br.com.danielschiavo.shop.model.cliente.endereco.CadastrarEnderecoDTO.Cad
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco;
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco.EnderecoBuilder;
 import br.com.danielschiavo.shop.model.cliente.endereco.MostrarEnderecoDTO;
+import br.com.danielschiavo.shop.repository.cliente.EnderecoRepository;
 import br.com.danielschiavo.shop.service.cliente.mapper.EnderecoMapperImpl;
 
 @ExtendWith(MockitoExtension.class)
@@ -97,7 +97,7 @@ class EnderecoUserServiceTest {
 	@DisplayName("Pegar enderecos cliente por id token deve funcionar normalmente quando cliente tem enderecos cadastrados")
 	void pegarEnderecosClientePorIdToken_ClienteTemEnderecosCadastrados_NaoDeveLancarExcecao() {
 		//ARRANGE
-		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").getCliente();
+		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").build();
 		Endereco endereco = enderecoBuilder.id(1L).cep("29142298").rua("Divinopolis").numero("15").complemento("Sem complemento").bairro("Bela vista").cidade("Cariacica").estado("ES").enderecoPadrao(true).cliente(cliente).build();
 		Endereco endereco2 = enderecoBuilder.id(2L).cep("29152291").rua("Avenida luciano das neves").numero("3233").complemento("Apartamento 302").bairro("Praia de itaparica").cidade("Vila velha").estado("ES").enderecoPadrao(true).cliente(cliente).build();
 		List<Endereco> listaEndereco = new ArrayList<>(List.of(endereco, endereco2));
@@ -127,7 +127,7 @@ class EnderecoUserServiceTest {
 	@DisplayName("Pegar enderecos cliente por id token deve lançar exceção quando cliente não tem enderecos cadastrados")
 	void pegarEnderecosClientePorIdToken_ClienteNaoTemEnderecosCadastrados_DeveLancarExcecao() {
 		//ARRANGE
-		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").getCliente();
+		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").build();
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		
 		//ASSERT + ACT
@@ -138,7 +138,7 @@ class EnderecoUserServiceTest {
 	@DisplayName("Cadastrar novo endereço por id token deve executar normalmente quando enviado CadastrarEnderecoDTO correto")
 	void cadastrarNovoEnderecoPorIdToken() {
 		//ARRANGE
-		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").getCliente();
+		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").build();
 		Endereco endereco = enderecoBuilder.id(1L).cep("29142298").rua("Divinopolis").numero("15").complemento("Sem complemento").bairro("Bela vista").cidade("Cariacica").estado("ES").enderecoPadrao(true).cliente(cliente).build();
 		Endereco endereco2 = enderecoBuilder.id(2L).cep("29152291").rua("Avenida luciano das neves").numero("3233").complemento("Apartamento 302").bairro("Praia de itaparica").cidade("Vila velha").estado("ES").enderecoPadrao(true).cliente(cliente).build();
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
@@ -164,7 +164,7 @@ class EnderecoUserServiceTest {
 	@DisplayName("Alterar endereco por id token deve executar normalmente quando id fornecido existe, é do cliente e AlterarEnderecoDTO é válido")
 	void alterarEnderecoPorIdToken() {
 		//ARRANGE
-		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").getCliente();
+		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").build();
 		Endereco endereco = enderecoBuilder.id(1L).cep("29142298").rua("Divinopolis").numero("15").complemento("Sem complemento").bairro("Bela vista").cidade("Cariacica").estado("ES").enderecoPadrao(true).cliente(cliente).build();
 		Endereco endereco2 = enderecoBuilder.id(2L).cep("29152291").rua("Avenida luciano das neves").numero("3233").complemento("Apartamento 302").bairro("Praia de itaparica").cidade("Vila velha").estado("ES").enderecoPadrao(true).cliente(cliente).build();
 		BDDMockito.when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);

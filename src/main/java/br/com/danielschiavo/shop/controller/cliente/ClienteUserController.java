@@ -4,6 +4,7 @@ package br.com.danielschiavo.shop.controller.cliente;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -26,10 +26,10 @@ import br.com.danielschiavo.shop.service.cliente.MostrarClientePaginaInicialDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/shop")
 @SecurityRequirement(name = "bearer-key")
 @Tag(name = "Cliente - User", description = "Todos endpoints relacionados com o cliente, que o próprio poderá utilizar")
 public class ClienteUserController {
@@ -39,17 +39,17 @@ public class ClienteUserController {
 	
 	@DeleteMapping("/cliente/foto-perfil")
 	@Operation(summary = "Deleta foto do perfil do cliente")
-	public ResponseEntity<?> deletarFotoPerfilClientePorIdToken() {
+	public ResponseEntity<?> deletarFotoPerfilClientePorIdToken(HttpServletRequest request) {
 		try {
-			clienteUserService.deletarFotoPerfilPorIdToken();
-			return ResponseEntity.noContent().build();
+			String respostaDeletarFotoPerfil = clienteUserService.deletarFotoPerfilPorIdToken();
+			return ResponseEntity.ok().body(respostaDeletarFotoPerfil);
 
 		} catch (ValidacaoException e) {
-			HttpStatus status = HttpStatus.NOT_FOUND;
-			return ResponseEntity.status(status).body(new MensagemErroDTO(status, e));
+			HttpStatus status = HttpStatus.BAD_REQUEST;
+			return ResponseEntity.status(status).body(new MensagemErroDTO(status, e, request));
 		} catch (IOException e) {
 			HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-			return ResponseEntity.status(status).body(new MensagemErroDTO(status.toString(), "Falha interna no servidor ao tentar excluir o arquivo."));
+			return ResponseEntity.status(status).body(new MensagemErroDTO(status, "Erro interno do servidor", request));
 		}
 	}
 	
@@ -70,14 +70,26 @@ public class ClienteUserController {
 	
 	@PostMapping("/publico/cadastrar/cliente")
 	@Operation(summary = "Cadastro de cliente")
-	public ResponseEntity<?> cadastrarCliente(@RequestBody @Valid CadastrarClienteDTO cadastrarClienteDTO,
-			UriComponentsBuilder uriBuilder) {
+	public ResponseEntity<?> cadastrarCliente(@RequestBody @Valid CadastrarClienteDTO cadastrarClienteDTO, HttpServletRequest request) {
 		try {
 			String respostaCadastrarCliente = clienteUserService.cadastrarCliente(cadastrarClienteDTO);
 			return ResponseEntity.status(HttpStatus.CREATED).body(respostaCadastrarCliente);
-		} catch (ValidacaoException e) {
-			return ResponseEntity.badRequest().body(new MensagemErroDTO(HttpStatus.BAD_REQUEST, e));
-		}
+        } catch (DataIntegrityViolationException e) {
+        	String message = e.getRootCause().getMessage();
+        	System.out.println(" MENSAGEM " + message);
+        	String mensagem = null;
+        	if (e.getMessage().contains("clientes_cpf_key")) {
+        		mensagem = "CPF já cadastrado";
+        	} 
+        	if (e.getMessage().contains("clientes_email_key")) {
+        		mensagem = "E-Mail já cadastrado";
+        	} 
+        	if (e.getMessage().contains("clientes_celular_key")) {
+        		mensagem = "Celular já cadastrado";
+        	}
+        	HttpStatus status = HttpStatus.BAD_REQUEST;
+			return ResponseEntity.status(status).body(new MensagemErroDTO(status, mensagem, request));
+        }
 		
 	}
 	
@@ -91,14 +103,14 @@ public class ClienteUserController {
 	
 	@PutMapping("/cliente/foto-perfil")
 	@Operation(summary = "Alterar a foto do perfil do cliente")
-	public ResponseEntity<?> alterarFotoPerfilPorIdToken(@RequestBody @Valid AlterarFotoPerfilDTO alterarFotoPerfilDTO) {
+	public ResponseEntity<?> alterarFotoPerfilPorIdToken(@RequestBody @Valid AlterarFotoPerfilDTO alterarFotoPerfilDTO, HttpServletRequest request) {
 		try {
 			String mensagemAlterarFotoPerfil = clienteUserService.alterarFotoPerfilPorIdToken(alterarFotoPerfilDTO);
 			return ResponseEntity.ok(mensagemAlterarFotoPerfil);
 			
 		} catch (ValidacaoException e) {
 			HttpStatus status = HttpStatus.NOT_FOUND;
-			return ResponseEntity.status(status).body(new MensagemErroDTO(status, e));
+			return ResponseEntity.status(status).body(new MensagemErroDTO(status, e, request));
 		}
 	}
 }

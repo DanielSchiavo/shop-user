@@ -29,11 +29,8 @@ import br.com.danielschiavo.feign.CarrinhoComumServiceClient;
 import br.com.danielschiavo.feign.CartaoComumServiceClient;
 import br.com.danielschiavo.feign.EnderecoComumServiceClient;
 import br.com.danielschiavo.feign.pedido.FileStoragePedidoComumServiceClient;
-import br.com.danielschiavo.feign.pedido.RequestPedidoImagemProduto;
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
 import br.com.danielschiavo.mapper.PedidoComumMapperImpl;
-import br.com.danielschiavo.repository.pedido.PedidoRepository;
-import br.com.danielschiavo.repository.produto.ProdutoRepository;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.Cliente.ClienteBuilder;
@@ -42,6 +39,7 @@ import br.com.danielschiavo.shop.model.cliente.cartao.TipoCartao;
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco;
 import br.com.danielschiavo.shop.model.cliente.endereco.Endereco.EnderecoBuilder;
 import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
+import br.com.danielschiavo.shop.model.filestorage.PersistirOuRecuperarImagemPedidoDTO;
 import br.com.danielschiavo.shop.model.pedido.Pedido;
 import br.com.danielschiavo.shop.model.pedido.Pedido.PedidoBuilder;
 import br.com.danielschiavo.shop.model.pedido.StatusPedido;
@@ -63,6 +61,8 @@ import br.com.danielschiavo.shop.model.produto.Produto;
 import br.com.danielschiavo.shop.model.produto.Produto.ProdutoBuilder;
 import br.com.danielschiavo.shop.model.produto.arquivosproduto.ArquivoProduto;
 import br.com.danielschiavo.shop.model.produto.tipoentregaproduto.TipoEntregaProduto;
+import br.com.danielschiavo.shop.repository.pedido.PedidoRepository;
+import br.com.danielschiavo.shop.repository.produto.ProdutoRepository;
 import br.com.danielschiavo.shop.service.pedido.validacoes.ValidadorCriarNovoPedido;
 
 @ExtendWith(MockitoExtension.class)
@@ -129,7 +129,7 @@ class PedidoUserServiceTest {
 	void pegarPedidosClientePorIdToken() {
 		//ARRANGE
 		//Cliente
-		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").getCliente();
+		Cliente cliente = clienteBuilder.id(1L).cpf("12345678994").nome("Silvana").sobrenome("Pereira da silva").dataNascimento(LocalDate.of(2000, 3, 3)).dataCriacaoConta(LocalDate.now()).email("silvana.dasilva@gmail.com").senha("{noop}123456").celular("27999833653").fotoPerfil("Qualquerfoto.jpeg").build();
 		//Produto
 		Produto produto = produtoBuilder.id(1L)
 										.nome("Mouse gamer")
@@ -156,7 +156,7 @@ class PedidoUserServiceTest {
 		
 		byte[] bytesImagem = "Hello world".getBytes();
 		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", bytesImagem);
-		when(fileStoragePedidoService.pegarImagemPedido(any())).thenReturn(arquivoInfoDTO);
+		when(fileStoragePedidoService.pegarImagemPedido(any(), any())).thenReturn(arquivoInfoDTO);
 		when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		when(usuarioAutenticadoService.getTokenComBearer()).thenReturn(tokenUser);
 		Pageable pageable = PageRequest.of(0, 10);
@@ -243,8 +243,8 @@ class PedidoUserServiceTest {
 		when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		when(usuarioAutenticadoService.getTokenComBearer()).thenReturn(tokenUser);
 		when(produtoUtilidadeService.pegarNomePrimeiraImagem(produto)).thenReturn(arquivoInfoDTO.nomeArquivo());
-		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new RequestPedidoImagemProduto(arquivoProduto.getNome(), produto.getId()))).thenReturn("Padrao.jpeg");
-		when(fileStoragePedidoService.pegarImagemPedido(any())).thenReturn(arquivoInfoDTO);
+		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new PersistirOuRecuperarImagemPedidoDTO(arquivoProduto.getNome(), produto.getId()), any())).thenReturn(new ArquivoInfoDTO("Padrao.jpeg", null));
+		when(fileStoragePedidoService.pegarImagemPedido(any(), any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		CriarPedidoDTO criarPedidoDTO = fabricaCriarPedidoDTO
@@ -327,8 +327,8 @@ class PedidoUserServiceTest {
 		when(usuarioAutenticadoService.getCliente()).thenReturn(cliente);
 		when(usuarioAutenticadoService.getTokenComBearer()).thenReturn(tokenUser);
 		when(produtoUtilidadeService.pegarNomePrimeiraImagem(produto)).thenReturn(arquivoInfoDTO.nomeArquivo());
-		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new RequestPedidoImagemProduto(arquivoProduto.getNome(), produto.getId()))).thenReturn("Padrao.jpeg");
-		when(fileStoragePedidoService.pegarImagemPedido(any())).thenReturn(arquivoInfoDTO);
+		when(fileStoragePedidoService.persistirOuRecuperarImagemPedido(new PersistirOuRecuperarImagemPedidoDTO(arquivoProduto.getNome(), produto.getId()), any())).thenReturn(new ArquivoInfoDTO("Padrao.jpeg", null));
+		when(fileStoragePedidoService.pegarImagemPedido(any(), any())).thenReturn(arquivoInfoDTO);
 		
 		//ACT
 		CriarPedidoDTO criarPedidoDTO = fabricaCriarPedidoDTO

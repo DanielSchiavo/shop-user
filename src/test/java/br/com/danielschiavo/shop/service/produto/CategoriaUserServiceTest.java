@@ -20,11 +20,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import br.com.danielschiavo.infra.security.UsuarioAutenticadoService;
-import br.com.danielschiavo.repository.produto.CategoriaRepository;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.produto.categoria.Categoria;
 import br.com.danielschiavo.shop.model.produto.categoria.Categoria.CategoriaBuilder;
 import br.com.danielschiavo.shop.model.produto.categoria.MostrarCategoriaComTodasSubCategoriaDTO;
+import br.com.danielschiavo.shop.repository.produto.CategoriaRepository;
 
 @ExtendWith(MockitoExtension.class)
 class CategoriaUserServiceTest {

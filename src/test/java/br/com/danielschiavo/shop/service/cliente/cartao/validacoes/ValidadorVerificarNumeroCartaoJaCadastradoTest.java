@@ -11,11 +11,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import br.com.danielschiavo.repository.cliente.CartaoRepository;
 import br.com.danielschiavo.shop.model.ValidacaoException;
 import br.com.danielschiavo.shop.model.cliente.Cliente;
 import br.com.danielschiavo.shop.model.cliente.cartao.CadastrarCartaoDTO;
 import br.com.danielschiavo.shop.model.cliente.cartao.Cartao;
+import br.com.danielschiavo.shop.repository.cliente.CartaoRepository;
 import br.com.danielschiavo.shop.service.cliente.validacoes.ValidadorVerificarNumeroCartaoJaCadastrado;
 
 @ExtendWith(MockitoExtension.class)

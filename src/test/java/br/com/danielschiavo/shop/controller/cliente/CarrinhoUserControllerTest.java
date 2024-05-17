@@ -98,7 +98,7 @@ class CarrinhoUserControllerTest {
 		MostrarItemCarrinhoClienteDTO mostrarItemCarrinhoClienteDTO2 = mostrarItemCarrinhoClienteDtoBuilder.produtoId(2L).quantidade(2).build();
 		List<MostrarItemCarrinhoClienteDTO> lista = new ArrayList<>();
 		lista.addAll(List.of(mostrarItemCarrinhoClienteDTO, mostrarItemCarrinhoClienteDTO2));
-		MostrarCarrinhoClienteDTO mostrarCarrinhoClienteDTO = mostrarCarrinhoClienteDTOBuilder.id(2L).itemsCarrinho(lista).valorTotal(BigDecimal.valueOf(200.00)).build();
+		MostrarCarrinhoClienteDTO mostrarCarrinhoClienteDTO = mostrarCarrinhoClienteDTOBuilder.clienteId(2L).itemsCarrinho(lista).valorTotal(BigDecimal.valueOf(200.00)).build();
 		
 		//ACT
 		when(carrinhoService.pegarCarrinhoClientePorIdToken()).thenReturn(mostrarCarrinhoClienteDTO);
