@@ -140,7 +140,7 @@ public class PedidoUserService {
 
 	private void criarESetarItemsPedido(CriarPedidoDTO pedidoDTO, PedidoBuilder pedidoBuilder, String tokenComBearer) {
 		List<Long> produtosId = pedidoDTO.items().stream().map(item -> item.idProduto()).collect(Collectors.toList());
-		List<ProdutoPedidoDTO> listaDadosProdutos = produtoServiceClient.pegarPrimeiraImagemEVerificarSeEstaAtivo(produtosId);
+		List<ProdutoPedidoDTO> listaDadosProdutos = produtoServiceClient.pegarProduto(produtosId);
 		
 		listaDadosProdutos.forEach(produto -> {
 			if (produto.ativo() == null || produto.primeiraImagem() == null) {
