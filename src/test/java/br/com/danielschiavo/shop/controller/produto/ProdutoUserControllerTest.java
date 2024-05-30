@@ -65,7 +65,7 @@ class ProdutoUserControllerTest {
 													.preco(BigDecimal.valueOf(200.00))
 													.quantidade(5)
 													.ativo(true)
-													.primeiraImagem("Hello world".getBytes()).build();
+													.primeiraImagem("Padrao.jpeg").build();
 		Page<MostrarProdutosDTO> pageProdutos = new PageImpl<>(List.of(mostrarProdutosDTO));
 		when(produtoUserService.listarProdutos(any())).thenReturn(pageProdutos);
 		

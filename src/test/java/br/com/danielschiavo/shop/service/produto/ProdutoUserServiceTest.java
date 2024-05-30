@@ -20,10 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-import br.com.danielschiavo.feign.produto.FileStorageProdutoComumServiceClient;
 import br.com.danielschiavo.mapper.ProdutoComumMapper;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
-import br.com.danielschiavo.shop.model.filestorage.ArquivoInfoDTO;
 import br.com.danielschiavo.shop.model.pedido.TipoEntrega;
 import br.com.danielschiavo.shop.model.produto.Produto;
 import br.com.danielschiavo.shop.model.produto.Produto.ProdutoBuilder;
@@ -41,9 +39,6 @@ class ProdutoUserServiceTest {
 	
 	@Mock
 	private ProdutoRepository produtoRepository;
-	
-	@Mock
-	private FileStorageProdutoComumServiceClient fileStorageProdutoService;
 	
 	@Mock
 	private ProdutoUtilidadeService produtoUtilidadeService;
@@ -82,11 +77,10 @@ class ProdutoUserServiceTest {
 		
 		PageRequest pageable = PageRequest.of(0, 10);
 		PageImpl<Produto> pageImplProduto = new PageImpl<>(produtos, pageable, produtos.size());
-		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", "Bytes do arquivo Padrao.jpeg".getBytes());
+		String nomePrimeiraImagem = "Padrao.jpeg";
 		//When
 		when(produtoRepository.findAll(pageable)).thenReturn(pageImplProduto);
-		when(produtoUtilidadeService.pegarNomePrimeiraImagem(any(Produto.class))).thenReturn("Padrao.jpeg");
-		when(fileStorageProdutoService.pegarArquivoProduto(any(String.class))).thenReturn(arquivoInfoDTO);
+		when(produtoUtilidadeService.pegarNomePrimeiraImagem(any(Produto.class))).thenReturn(nomePrimeiraImagem);
 		
 		//ACT
 		Page<MostrarProdutosDTO> pageMostrarProdutosDTO = produtoUserService.listarProdutos(pageable);
@@ -101,13 +95,16 @@ class ProdutoUserServiceTest {
 			Assertions.assertEquals(produtos.get(i).getPreco(), listaMostrarProdutos.get(i).getPreco());
 			Assertions.assertEquals(produtos.get(i).getQuantidade(), listaMostrarProdutos.get(i).getQuantidade());
 			Assertions.assertEquals(produtos.get(i).getAtivo(), listaMostrarProdutos.get(i).getAtivo());
-			Assertions.assertArrayEquals(arquivoInfoDTO.bytesArquivo(), listaMostrarProdutos.get(i).getPrimeiraImagem());
+			Assertions.assertEquals(nomePrimeiraImagem, listaMostrarProdutos.get(i).getPrimeiraImagem());
 		}
 	}
 	
 	@Test
 	void detalharProdutoPorId() {
 		//ARRANGE
+		ArquivoProduto arquivoProduto = ArquivoProduto.builder().id(0L).nome("Padrao.jpeg").posicao((byte) 0).build();
+		ArquivoProduto arquivoProduto2 = ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 1).build();
+		Set<ArquivoProduto> setArquivosProduto = Set.of(arquivoProduto, arquivoProduto2);
 		//Produto		
 		Produto produto = produtoBuilder.id(1L)
 										.nome("Mouse gamer")
@@ -115,17 +112,12 @@ class ProdutoUserServiceTest {
 										.preco(BigDecimal.valueOf(200.00))
 										.quantidade(100)
 										.tiposEntrega(Set.of(TipoEntregaProduto.builder().id(1L).tipoEntrega(TipoEntrega.CORREIOS).build(), TipoEntregaProduto.builder().id(2L).tipoEntrega(TipoEntrega.RETIRADA_NA_LOJA).build(), TipoEntregaProduto.builder().id(3L).tipoEntrega(TipoEntrega.ENTREGA_EXPRESSA).build()))
-										.arquivosProduto(Set.of(ArquivoProduto.builder().id(1L).nome("Padrao.jpeg").posicao((byte) 0).build()))
+										.arquivosProduto(setArquivosProduto)
 										.subCategoriaId(1L)
 										.build();
-		ArquivoInfoDTO arquivoInfoDTO = new ArquivoInfoDTO("Padrao.jpeg", "Bytes do arquivo Padrao.jpeg".getBytes());
-		ArquivoInfoDTO arquivoInfoDTO2 = new ArquivoInfoDTO("Padrao.jpeg", "Bytes do arquivo Padrao.jpeg".getBytes());
-		List<ArquivoInfoDTO> listaArquivosInfoDTO = new ArrayList<>(List.of(arquivoInfoDTO, arquivoInfoDTO2));
 		//When
 		Long idProduto = 1L;
 		when(produtoUtilidadeService.pegarProdutoPorId(idProduto)).thenReturn(produto);
-		when(produtoUtilidadeService.pegarNomeTodosArquivos(any(Produto.class))).thenReturn(List.of("Padrao.jpeg", "Padrao.jpeg"));
-		when(fileStorageProdutoService.pegarArquivosProduto(any())).thenReturn(listaArquivosInfoDTO);
 		
 		//ACT
 		DetalharProdutoDTO detalharProdutoDTO = produtoUserService.detalharProdutoPorId(idProduto);
@@ -137,9 +129,9 @@ class ProdutoUserServiceTest {
 		Assertions.assertEquals(produto.getPreco(), detalharProdutoDTO.getPreco());
 		Assertions.assertEquals(produto.getQuantidade(), detalharProdutoDTO.getQuantidade());
 		Assertions.assertEquals(produto.getAtivo(), detalharProdutoDTO.getAtivo());
-		detalharProdutoDTO.getArquivos().forEach(arquivo -> {
-			Assertions.assertEquals(arquivoInfoDTO.nomeArquivo(), arquivo.nomeArquivo());
-			Assertions.assertArrayEquals(arquivoInfoDTO.bytesArquivo(), arquivo.bytesArquivo());
-		});
+		
+		for (int i = 0; i < detalharProdutoDTO.getArquivos().size(); i++) {
+			Assertions.assertEquals(arquivoProduto.getNome(), detalharProdutoDTO.getArquivos().get(i).nomeArquivo());
+		}
 	}
 }
