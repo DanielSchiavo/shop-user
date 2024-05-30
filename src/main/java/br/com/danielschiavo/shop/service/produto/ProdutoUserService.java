@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import br.com.danielschiavo.feign.produto.FileStorageProdutoComumServiceClient;
 import br.com.danielschiavo.mapper.ProdutoComumMapper;
 import br.com.danielschiavo.service.produto.ProdutoUtilidadeService;
 import br.com.danielschiavo.shop.model.pedido.dto.ProdutoPedidoDTO;
@@ -27,9 +26,6 @@ public class ProdutoUserService {
 	private ProdutoRepository produtoRepository;
 
 	@Autowired
-	private FileStorageProdutoComumServiceClient fileStorageProdutoComumServiceClient;
-
-	@Autowired
 	private ProdutoComumMapper produtoMapper;
 	
 	@Autowired
@@ -39,7 +35,7 @@ public class ProdutoUserService {
 		Page<Produto> pageProdutos = produtoRepository.findAll(pageable);
 		
 	    List<MostrarProdutosDTO> listaMostrarProdutosDTO = pageProdutos.getContent().stream()
-	            .map(produto -> produtoMapper.produtoParaMostrarProdutosDTO(produto, fileStorageProdutoComumServiceClient, produtoUtilidadeService))
+	            .map(produto -> produtoMapper.produtoParaMostrarProdutosDTO(produto, produtoUtilidadeService))
 	            .collect(Collectors.toList());
 	    
 	    return new PageImpl<>(listaMostrarProdutosDTO, pageable, pageProdutos.getTotalElements());
@@ -47,7 +43,7 @@ public class ProdutoUserService {
 	
 	public DetalharProdutoDTO detalharProdutoPorId(Long id) {
 		Produto produto = produtoUtilidadeService.pegarProdutoPorId(id);
-		return produtoMapper.produtoParaDetalharProdutoDTO(produto, fileStorageProdutoComumServiceClient, produtoUtilidadeService);
+		return produtoMapper.produtoParaDetalharProdutoDTO(produto, produtoUtilidadeService);
 	}
 
 	public List<ProdutoPedidoDTO> detalharProdutosPorIdParaFazerPedido(List<Long> produtosId) {
